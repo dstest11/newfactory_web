@@ -115,26 +115,12 @@
             <h2 class="nf-display">Co se obvykle ptáme<br><span class="nf-display--accent">před objednáním.</span></h2>
         </header>
         <div class="nf-faq__list">
-            <details>
-                <summary><span class="nf-mono">[Q1]</span> Je všechno v ALL-IN ceně, nebo budou další faktury?</summary>
-                <p>ALL-IN cena zahrnuje stroj, příslušenství, leteckou dopravu (DDP — paid by us), pojištění zásilky a vyřízení cla + DPH. Žádný další jednorázový poplatek z naší strany. Volitelné měsíční služby (hosting, monitoring, údržba) si určujete při poptávce.</p>
-            </details>
-            <details>
-                <summary><span class="nf-mono">[Q2]</span> Jak vysoký je tarif za elektřinu?</summary>
-                <p>Pevný tarif 5 Kč/kWh pro celou délku 12měsíční smlouvy. Při prodloužení se sazba reviduje na základě aktuálních cen — nikdy ne v průběhu smlouvy.</p>
-            </details>
-            <details>
-                <summary><span class="nf-mono">[Q3]</span> Co když stroj poruchu nebo přestane těžit?</summary>
-                <p>U strojů s aktivní zárukou výrobce vyřizujeme reklamaci za vás. Po skončení záruky pokračujeme bezplatným doživotním servisem v rámci naší standardní podpory.</p>
-            </details>
-            <details>
-                <summary><span class="nf-mono">[Q4]</span> Můžu provoz pozastavit, když mining přestane být ziskový?</summary>
-                <p>Ano. Smlouva má 12měsíční délku, ale provoz lze kdykoliv pozastavit — během pauzy se neúčtuje elektřina ani hosting.</p>
-            </details>
-            <details>
-                <summary><span class="nf-mono">[Q5]</span> Co je v 98% SLA garanci uptime?</summary>
-                <p>Smluvní garance, že stroj poběží minimálně 98 % času každého fakturačního měsíce. Při delším výpadku kompenzujeme zákazníkovi výnos podle aktuální obtížnosti sítě a kurzu BTC.</p>
-            </details>
+            {% for faq in faqs|default([]) %}
+                <details>
+                    <summary><span class="nf-mono">[Q{{ loop.index }}]</span> {{ faq.question }}</summary>
+                    <p>{{ faq.answer }}</p>
+                </details>
+            {% endfor %}
         </div>
     </section>
 </main>
