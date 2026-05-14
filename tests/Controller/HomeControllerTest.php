@@ -15,7 +15,14 @@ final class HomeControllerTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         $body = (string) $client->getResponse()->getContent();
-        self::assertStringContainsString('<h1>New Factory</h1>', $body);
+        // Victor template's loader text — proves the SPA shell + branding is in place.
+        self::assertStringContainsString('NEW FACTORY', $body);
         self::assertStringContainsString('lang="cs"', $body);
+        // Czech section headings prove the rebrand (not the original Victor copy).
+        self::assertStringContainsString('O NÁS', $body);
+        self::assertStringContainsString('STROJE', $body);
+        // Victor 3D assets must be referenced (CSS + JS bundle paths).
+        self::assertStringContainsString('/victor/styles/main.css', $body);
+        self::assertStringContainsString('/victor/main.js', $body);
     }
 }
