@@ -136,61 +136,115 @@ function generateRandomObject(verticalPosition, availableSizes, availableColors)
 }
 
 function loadMainLetters() {
-    const fontLoader = new THREE.FontLoader()
-    fontLoader.load('/petar11199.github.io/Victor/resources/fonts/Roboto-Black-3d.json', font => {  //'/resources/fonts/Roboto-Black-3d.json'.replace('build.homepage/','')
-        let textGeometry = new THREE.TextGeometry(configuration.SiteName, {
-            font: font,
-            size: 5,
-            height: 3,
-            curveSegments: 3
-        })
-        textGeometry.center()
+    // Build a 3D Bitcoin "₿" mark via extruded SVG-like Shape — replaces the
+    // original Victor TextGeometry that loaded an English-only Roboto 3D font
+    // (Roboto-Black-3d.json has no ₿ glyph, so we hand-build the path here).
+    // The shape preserves the wireframe shader treatment + same mainLettersMesh
+    // animations as the Victor original.
+    const bShape = buildBitcoinShape()
+    const extrudeSettings = { depth: 3, bevelEnabled: false, curveSegments: 8 }
+    const geometry = new THREE.ExtrudeGeometry(bShape, extrudeSettings)
+    geometry.center()
+    geometry.scale(0.6, 0.6, 0.6) // fits viewport at Victor's camera distance
 
-        textGeometry.scale(configuration.SiteNameSize, configuration.SiteNameSize, configuration.SiteNameSize)
-
-        const textMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                time: {
-                    value: 0
-                },
-                color: {
-                    type: 'vec3',
-                    value: new THREE.Color(configuration.colors.LettersColor)
-                }
-            },
-            vertexShader: vertexShader(),
-            fragmentShader: fragmentShader(),
-            side: THREE.DoubleSide,
-            wireframe: true
-        })
-        mainLettersMesh = new THREE.Mesh(textGeometry, textMaterial)
-        scene.add(mainLettersMesh)
-
-        let vertices = []
-
-        for (let i = 0; i < configuration.NumberOfDots; i++) {
-            let x = Math.random() * 200 - 100
-            let y = Math.random() * 200 - 100
-            let z = Math.random() * 200 - 100
-
-            vertices.push(x, y, z)
-        }
-
-        const bufferGeometry = new THREE.BufferGeometry()
-        bufferGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
-        const pointSprite = new THREE.TextureLoader().load('/petar11199.github.io/Victor/resources/images/icons/pointImg.png')
-        const pointsMaterial = new THREE.PointsMaterial({
-            color: configuration.colors.DotsColor,
-            size: 0.5,
-            map: pointSprite,
-            transparent: true,
-            alphaTest: 0.5
-        })
-        const points = new THREE.Points(bufferGeometry, pointsMaterial)
-        scene.add(points)
-
-        windowResize()
+    const textMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            time: { value: 0 },
+            color: {
+                type: 'vec3',
+                value: new THREE.Color(configuration.colors.LettersColor)
+            }
+        },
+        vertexShader: vertexShader(),
+        fragmentShader: fragmentShader(),
+        side: THREE.DoubleSide,
+        wireframe: true
     })
+    mainLettersMesh = new THREE.Mesh(geometry, textMaterial)
+    scene.add(mainLettersMesh)
+
+    let vertices = []
+    for (let i = 0; i < configuration.NumberOfDots; i++) {
+        let x = Math.random() * 200 - 100
+        let y = Math.random() * 200 - 100
+        let z = Math.random() * 200 - 100
+        vertices.push(x, y, z)
+    }
+    const bufferGeometry = new THREE.BufferGeometry()
+    bufferGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
+    const pointSprite = new THREE.TextureLoader().load('/victor/resources/images/icons/pointImg.png')
+    const pointsMaterial = new THREE.PointsMaterial({
+        color: configuration.colors.DotsColor,
+        size: 0.5,
+        map: pointSprite,
+        transparent: true,
+        alphaTest: 0.5
+    })
+    const points = new THREE.Points(bufferGeometry, pointsMaterial)
+    scene.add(points)
+    // (windowResize() removed — original Victor needed it after async font
+    // load; we're now synchronous, so init() reaches renderer creation right
+    // after this and resize fires correctly on first event.)
+}
+
+/**
+ * Builds the iconic Bitcoin "₿" mark as a 2D THREE.Shape ready for extrusion.
+ *
+ * Proportions follow the public-domain bitcoin.org logo: a rounded "B" with
+ * two vertical strokes piercing top + bottom. Bezier curves on the right side
+ * give the two bulges a smooth profile (vs. earlier polyline draft which had
+ * visible facets at wireframe-rendering resolution).
+ *
+ * Shape-space units ~ 10 wide × 14 tall, recentered later via geometry.center().
+ */
+function buildBitcoinShape() {
+    const shape = new THREE.Shape()
+
+    // Outline drawn anti-clockwise (Three.js Shape default winding for fills).
+    // Start: top-left of the upper vertical stroke notch.
+    shape.moveTo(2, 7)            // bottom of upper-left vertical stroke
+    shape.lineTo(2, 8.5)          // up along left vertical stroke
+    shape.lineTo(3.5, 8.5)        // top of left vertical stroke
+    shape.lineTo(3.5, 7)
+    shape.lineTo(5.5, 7)          // gap between two upper strokes (top of B body)
+    shape.lineTo(5.5, 8.5)        // up along right vertical stroke
+    shape.lineTo(7, 8.5)
+    shape.lineTo(7, 7)
+    // Right side of B body — two smooth bulges via quadratic bezier curves.
+    shape.bezierCurveTo(10.5, 7, 11, 4.5, 11, 3.5)       // upper bulge to max-right
+    shape.bezierCurveTo(11, 2,  10, 1,  8.5, 0.5)        // sweep back to center
+    shape.bezierCurveTo(11, 0,  12, -1.5, 12, -3)        // lower bulge to max-right
+    shape.bezierCurveTo(12, -5, 10.5, -7, 7, -7)         // sweep back down
+    shape.lineTo(7, -8.5)          // right vertical stroke (lower)
+    shape.lineTo(5.5, -8.5)
+    shape.lineTo(5.5, -7)
+    shape.lineTo(3.5, -7)
+    shape.lineTo(3.5, -8.5)        // left vertical stroke (lower)
+    shape.lineTo(2, -8.5)
+    shape.lineTo(2, -7)
+    shape.lineTo(-1, -7)           // left side of B body (flat)
+    shape.lineTo(-1, 7)
+    shape.lineTo(2, 7)
+
+    // Upper bulge interior cutout — a rounded rectangle hole.
+    const upperHole = new THREE.Path()
+    upperHole.moveTo(2, 5.5)
+    upperHole.lineTo(7, 5.5)
+    upperHole.bezierCurveTo(9, 5.5, 9, 2.5, 7, 2.5)
+    upperHole.lineTo(2, 2.5)
+    upperHole.lineTo(2, 5.5)
+    shape.holes.push(upperHole)
+
+    // Lower bulge interior cutout — slightly bigger than upper.
+    const lowerHole = new THREE.Path()
+    lowerHole.moveTo(2, 0.5)
+    lowerHole.lineTo(7.5, 0.5)
+    lowerHole.bezierCurveTo(10, 0.5, 10, -5, 7.5, -5)
+    lowerHole.lineTo(2, -5)
+    lowerHole.lineTo(2, 0.5)
+    shape.holes.push(lowerHole)
+
+    return shape
 }
 
 function vertexShader() {

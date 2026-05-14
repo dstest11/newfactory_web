@@ -1,10 +1,14 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Stroje — New Factory{% endblock %}
+{% block title %}Stroje na těžbu kryptoměn — New Factory{% endblock %}
+
+{% block meta %}
+    <meta name="description" content="Mining stroje pro Bitcoin s transparentní all-in cenou. Doprava, clo, hosting, instalace a servis v jedné ceně. Bez skrytých poplatků.">
+{% endblock %}
 
 {% block body %}
 <header class="site-header">
-    <a href="{{ path('home') }}" class="site-header__brand">New Factory</a>
+    <a href="{{ path('home') }}" class="site-header__brand">NEW FACTORY</a>
     <nav class="site-header__nav">
         <a href="{{ path('home') }}">Úvod</a>
         <a href="{{ path('product_list') }}" class="active">Stroje</a>
@@ -12,19 +16,99 @@
     </nav>
 </header>
 
-<main class="page-products">
-    <section class="page-products__intro">
-        <h1>Mining stroje na míru</h1>
-        <p>Špičkové ASIC mineři pro Bitcoin. Dodáváme komplet — stroj + instalace + provoz + záruka.
-           Ceny vždy bez skrytých poplatků; elektřina se počítá za reálnou spotřebu na vašem tarifu.</p>
+<main class="page-list">
+    <section class="page-list__intro">
+        <h1>Stroje na těžbu kryptoměn</h1>
+        <p>All-in cena znamená opravdu vše — stroj, příslušenství, doprava, clo, pojištění. Hosting, instalace a 24/7 monitoring jsou volitelné.</p>
     </section>
 
-    <section class="page-products__grid">
+    <section class="product-list">
         {% for product in products %}
-            <twig:PricingCard product="{{ product }}" />
+            {% set base = product.machine_price_czk + product.accessories_czk %}
+            {% set required = 0 %}
+            {% set optional_total = 0 %}
+            {% for line in product.service_lines %}
+                {% if line.is_optional %}
+                    {% set optional_total = optional_total + line.price_czk %}
+                {% else %}
+                    {% set required = required + line.price_czk %}
+                {% endif %}
+            {% endfor %}
+            {% set allin = base + required %}
+
+            <article class="product-list__box">
+                <span class="product-list__badge product-list__badge--{{ product.delivery|lower|replace({' ': '-'}) }}">{{ product.delivery }}</span>
+                <a href="{{ path('product_detail', { slug: product.slug }) }}" class="product-list__image-link">
+                    <img class="product-list__image" src="/victor/resources/images/portfolio/portfolio{{ loop.index }}.jpg" alt="{{ product.name }}" />
+                </a>
+                <header class="product-list__head">
+                    <h2 class="product-list__title">
+                        <a href="{{ path('product_detail', { slug: product.slug }) }}">{{ product.name }}</a>
+                    </h2>
+                    <p class="product-list__category">{{ product.currency_type }} · {{ product.algorithm }}</p>
+                </header>
+                <dl class="product-list__specs">
+                    <div><dt>Hashrate</dt><dd>{{ product.hashrate }}</dd></div>
+                    <div><dt>Roční výnos <small>(odhad)</small></dt><dd>{{ product.annual_btc }}</dd></div>
+                    <div><dt>Elektřina @ 5 Kč/kWh</dt><dd>{{ product.electricity_yearly_czk|number_format(0, ',', ' ') }} Kč/rok</dd></div>
+                </dl>
+                <div class="product-list__pricing">
+                    <div class="product-list__price-line"><span>Cena stroje</span><strong>{{ product.machine_price_czk|number_format(0, ',', ' ') }} Kč</strong></div>
+                    <div class="product-list__price-line"><span>Příslušenství</span><strong>{{ product.accessories_czk|number_format(0, ',', ' ') }} Kč</strong></div>
+                    <div class="product-list__price-line"><span>Doprava + clo + pojištění</span><strong>{{ required|number_format(0, ',', ' ') }} Kč</strong></div>
+                    <div class="product-list__price-total">
+                        <span>ALL-IN</span>
+                        <strong>{{ allin|number_format(0, ',', ' ') }} Kč</strong>
+                    </div>
+                    <p class="product-list__price-energy">+ {{ product.electricity_yearly_czk|number_format(0, ',', ' ') }} Kč elektřina / rok</p>
+                </div>
+                <div class="product-list__actions">
+                    <a class="button button--secondary product-list__btn" href="{{ path('product_detail', { slug: product.slug }) }}">Detail</a>
+                    <a class="button button--primary product-list__btn" href="{{ path('contact', { product: product.slug }) }}">Nezávazná poptávka</a>
+                </div>
+                <details class="product-list__details">
+                    <summary>Co je v ceně zahrnuto?</summary>
+                    <ul class="product-list__breakdown">
+                        {% for line in product.service_lines %}
+                            <li class="{{ line.is_optional ? 'is-optional' : 'is-required' }}">
+                                <span>{{ line.name }}{% if line.is_optional %} <em>(volitelné)</em>{% endif %}</span>
+                                <strong>{{ line.price_czk|number_format(0, ',', ' ') }} Kč</strong>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </details>
+            </article>
         {% else %}
-            <p>Momentálně neprodáváme. <a href="{{ path('contact') }}">Napište nám</a>, ozveme se.</p>
+            <p>Momentálně neprodáváme. <a href="{{ path('contact') }}">Napište nám</a>, ozveme se s nabídkou na míru.</p>
         {% endfor %}
     </section>
+
+    <section class="page-list__faq">
+        <h2>Časté otázky</h2>
+        <details>
+            <summary>Je všechno v ALL-IN ceně, nebo budou další faktury?</summary>
+            <p>ALL-IN cena zahrnuje stroj, příslušenství, leteckou dopravu (DDP — paid by us), pojištění zásilky a vyřízení cla + DPH. Žádný další jednorázový poplatek z naší strany. Volitelné měsíční služby (hosting, monitoring, údržba) si určujete při poptávce.</p>
+        </details>
+        <details>
+            <summary>Jak vysoký je tarif za elektřinu?</summary>
+            <p>Pevný tarif 5 Kč/kWh pro celou délku 12měsíční smlouvy. Při prodloužení se sazba reviduje na základě aktuálních cen — nikdy ne v průběhu smlouvy.</p>
+        </details>
+        <details>
+            <summary>Co když stroj poruchu nebo přestane těžit?</summary>
+            <p>U strojů s aktivní zárukou výrobce vyřizujeme reklamaci za vás. Po skončení záruky pokračujeme bezplatným doživotním servisem v rámci naší standardní podpory.</p>
+        </details>
+        <details>
+            <summary>Můžu provoz pozastavit, když mining přestane být ziskový?</summary>
+            <p>Ano. Smlouva má 12měsíční délku, ale provoz lze kdykoliv pozastavit — během pauzy se neúčtuje elektřina ani hosting.</p>
+        </details>
+        <details>
+            <summary>Co je v 98% SLA garanci uptime?</summary>
+            <p>Smluvní garance, že stroj poběží minimálně 98 % času každého fakturačního měsíce. Při delším výpadku kompenzujeme zákazníkovi výnos podle aktuální obtížnosti sítě a kurzu BTC.</p>
+        </details>
+    </section>
 </main>
+
+<footer class="site-footer">
+    <p>© {{ "now"|date("Y") }} New Factory · <a href="mailto:mining@new-factory.cz">mining@new-factory.cz</a></p>
+</footer>
 {% endblock %}

@@ -15,10 +15,10 @@
     <!-- MAIN MENU -->
     <div class="menu">
         <ul class="menu-list">
-            <li class="menu-list__item" data-page="1">O NÁS</li>
+            <li class="menu-list__item" data-page="1">STROJE</li>
             <li class="menu-list__item" data-page="2">SLUŽBY</li>
-            <li class="menu-list__item" data-page="3">TÝM</li>
-            <li class="menu-list__item" data-page="4">STROJE</li>
+            <li class="menu-list__item" data-page="3">PROČ NÁS</li>
+            <li class="menu-list__item" data-page="4">TÝM</li>
             <li class="menu-list__item" data-page="5">KONTAKT</li>
         </ul>
     </div>
@@ -192,10 +192,63 @@
             </div>
         </div>
 
-        <!-- Section 1 — ABOUT -->
-        <div class="content-section section--hidden" data-page="1">
-            <h1 class="content-section__title">O NÁS</h1>
-            <p class="content-section__text">{{ homepage.intro_body|default('Specializujeme se na ASIC mining hardware pro Bitcoin. Dovážíme pravé stroje od Bitmain a MicroBT — žádné rebranded napodobeniny, žádné šedé importy. Provoz, údržbu a záruku řešíme na klíč. Cenová struktura je transparentní podle 2bminer modelu: cena stroje + příslušenství + reálná spotřeba elektřiny podle vašeho tarifu. Jsme ') }}<span class="emphasize">NEW FACTORY</span>.</p>
+        <!-- Section 1 — MACHINES (full offer with prices) -->
+        <div class="content-section section--hidden content-section--scrollable" data-page="1">
+            <h1 class="content-section__title">STROJE NA TĚŽBU</h1>
+            <p class="content-section__text">Plně transparentní all-in cena. Bez skrytých poplatků. Hosting, instalace, servis a 24/7 monitoring zahrnuty v nabídce.</p>
+
+            <div class="machine-grid">
+                {% for product in products|default([]) %}
+                    {% set base = product.machine_price_czk + product.accessories_czk %}
+                    {% set required = 0 %}
+                    {% set optional_total = 0 %}
+                    {% for line in product.service_lines %}
+                        {% if line.is_optional %}
+                            {% set optional_total = optional_total + line.price_czk %}
+                        {% else %}
+                            {% set required = required + line.price_czk %}
+                        {% endif %}
+                    {% endfor %}
+                    {% set allin = base + required %}
+
+                    <article class="machine-card">
+                        <span class="machine-card__badge machine-card__badge--{{ product.delivery|lower|replace({' ': '-'}) }}">{{ product.delivery }}</span>
+                        <img class="machine-card__image" src="/victor/resources/images/portfolio/portfolio{{ loop.index }}.jpg" alt="{{ product.name }}" />
+                        <header class="machine-card__head">
+                            <h2 class="machine-card__title">{{ product.name }}</h2>
+                            <p class="machine-card__subtitle">{{ product.currency_type }} · {{ product.algorithm }}</p>
+                        </header>
+                        <dl class="machine-card__specs">
+                            <div><dt>Hashrate</dt><dd>{{ product.hashrate }}</dd></div>
+                            <div><dt>Roční hrubý výnos<sup title="Odhad podle aktuální obtížnosti sítě a kurzu BTC; výsledná hodnota není garantovaná.">ⓘ</sup></dt><dd>{{ product.annual_btc }}</dd></div>
+                            <div><dt>Roční elektřina @ 5 Kč/kWh</dt><dd>{{ product.electricity_yearly_czk|number_format(0, ',', ' ') }} Kč</dd></div>
+                        </dl>
+                        <div class="machine-card__price">
+                            <div class="machine-card__price-row"><span>Cena stroje</span><strong>{{ product.machine_price_czk|number_format(0, ',', ' ') }} Kč</strong></div>
+                            <div class="machine-card__price-row"><span>Příslušenství</span><strong>{{ product.accessories_czk|number_format(0, ',', ' ') }} Kč</strong></div>
+                            <div class="machine-card__price-row"><span>Doprava + clo + pojištění</span><strong>{{ required|number_format(0, ',', ' ') }} Kč</strong></div>
+                            <div class="machine-card__price-total"><span>ALL-IN cena</span><strong>{{ allin|number_format(0, ',', ' ') }} Kč</strong></div>
+                            <div class="machine-card__price-energy">+ {{ product.electricity_yearly_czk|number_format(0, ',', ' ') }} Kč elektřina / rok</div>
+                        </div>
+                        <div class="machine-card__actions">
+                            <a class="button button--secondary machine-card__btn" href="{{ path('product_detail', { slug: product.slug }) }}">Detail stroje</a>
+                            <a class="button button--primary machine-card__btn" href="{{ path('contact', { product: product.slug }) }}">Nezávazná poptávka</a>
+                        </div>
+                        <details class="machine-card__breakdown">
+                            <summary>Co je v ceně zahrnuto?</summary>
+                            <ul>
+                                {% for line in product.service_lines %}
+                                    <li class="{{ line.is_optional ? 'is-optional' : 'is-required' }}">
+                                        <span>{{ line.name }}{% if line.is_optional %} <em>(volitelné)</em>{% endif %}</span>
+                                        <strong>{{ line.price_czk|number_format(0, ',', ' ') }} Kč</strong>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <p class="machine-card__breakdown-note">S volitelnými službami až {{ (allin + optional_total)|number_format(0, ',', ' ') }} Kč. Vyberete si jen to, co opravdu potřebujete.</p>
+                        </details>
+                    </article>
+                {% endfor %}
+            </div>
         </div>
 
         <!-- Section 2 — SERVICES -->
@@ -247,8 +300,40 @@
             <button class="content-section__button button button--secondary" id="button_offers">ZOBRAZIT VŠECHNY SLUŽBY</button>
         </div>
 
-        <!-- Section 3 — TEAM -->
-        <div class="content-section section--hidden content-section--left-align" data-page="3">
+        <!-- Section 3 — PROČ NÁS (transparency + customer questions answered) -->
+        <div class="content-section section--hidden content-section--scrollable" data-page="3">
+            <h1 class="content-section__title">PROČ PRÁVĚ NEW FACTORY</h1>
+            <p class="content-section__text">Šest věcí, které dělají rozdíl mezi solidním a špatným hosting providerem.</p>
+            <div class="benefits-grid">
+                <article class="benefit">
+                    <h3 class="benefit__title">Cena elektřiny 5 Kč/kWh</h3>
+                    <p>Pevný tarif po celé délce smlouvy. Přesouvání zátěže do nočních špiček zdarma. Cena za reálnou spotřebu, ne paušál.</p>
+                </article>
+                <article class="benefit">
+                    <h3 class="benefit__title">98 % garance uptime</h3>
+                    <p>Smluvní SLA. Při výpadku delším než 24 hodin kompenzace v BTC podle aktuální obtížnosti sítě.</p>
+                </article>
+                <article class="benefit">
+                    <h3 class="benefit__title">Bezplatný doživotní servis</h3>
+                    <p>Po skončení záruky výrobce přebíráme servis my. Bez dodatečných poplatků za diagnostiku ani drobné opravy.</p>
+                </article>
+                <article class="benefit">
+                    <h3 class="benefit__title">12 měs. smlouva s pauzou</h3>
+                    <p>Kdykoliv můžete provoz pozastavit — při poklesu výnosnosti se účtování elektřiny zastaví.</p>
+                </article>
+                <article class="benefit">
+                    <h3 class="benefit__title">24/7 monitoring + alerty</h3>
+                    <p>Reporting hashrate, výpadků a teploty na email. Vlastní dashboard s historií posledních 90 dní.</p>
+                </article>
+                <article class="benefit">
+                    <h3 class="benefit__title">Bezpečnost + záloha</h3>
+                    <p>Datacentrum s detekcí požáru, kamerovým systémem a záložním zdrojem. Pojištění stroje na celou pořizovací cenu.</p>
+                </article>
+            </div>
+        </div>
+
+        <!-- Section 4 — TEAM -->
+        <div class="content-section section--hidden content-section--left-align" data-page="4">
             <div class="content-holder--left-align">
                 <h1 class="content-section__title">NÁŠ TÝM</h1>
                 <p class="content-section__text text-indent content-section__text-team">Firma stojí na lidech, ne na strojích. Náš tým má za sebou roky praxe v mining, hardware servisu i obchodě. Stroj prodáme i tomu, kdo nikdy nemíchal kryptoměnu — provedeme vás od první kalkulace po první vytěžený Bitcoin.</p>
@@ -268,28 +353,6 @@
                     <img class="content-section__image" src="/victor/resources/images/persons/person4.jpg" alt="Team photo" />
                 </div>
             </div>
-        </div>
-
-        <!-- Section 4 — STROJE (portfolio rebranded) -->
-        <div class="content-section section--hidden" data-page="4">
-            <h1 class="content-section__title">STROJE</h1>
-            <p class="content-section__text">Naše skladová nabídka — všechny stroje s instalací na klíč a transparentní cenovou kalkulací.</p>
-            <div class="content-portfolio__images flex">
-                {% for product in products|default([]) %}
-                    <div class="content-portfolio__image-holder">
-                        <span class="content-portfolio__name text-indent">{{ product.name }}</span>
-                        <img class="content-portfolio__image" src="/victor/resources/images/portfolio/portfolio{{ loop.index }}.jpg" alt="{{ product.name }}" />
-                        <div class="content-portfolio__price">
-                            <strong>{{ product.machine_price_czk|number_format(0, ',', ' ') }} Kč</strong>
-                            <small>{{ product.hashrate }} · {{ product.power_w|number_format(0, ',', ' ') }} W</small>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-            <a class="content-section__button button button--icon" href="{{ path('product_list') }}">
-                <span class="button__text">DETAIL VŠECH STROJŮ + KALKULACE</span>
-                <img class="button__image" src="/victor/resources/images/icons/external.svg" alt="External icon" />
-            </a>
         </div>
 
         <!-- Section 5 — CONTACT -->

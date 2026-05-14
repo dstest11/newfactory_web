@@ -7,7 +7,7 @@ namespace App\Twig\Components;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
 /**
- * Renders 2bminer-style pricing breakdown for one mining product:
+ * Renders transparent pricing breakdown for one mining product:
  *   Machine price + accessories (line items, optional/required) + yearly electricity.
  *
  * Used on /produkty and /produkty/{slug}.
