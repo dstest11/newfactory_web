@@ -1,51 +1,21 @@
 # =============================================================================
-# TEMPLATE: deploy workflow — staging+release pattern (Phase 3, 2026-05-07)
+# Deploy workflow — Phase C webhook trigger (matches dstest11/koupelnystefl_web,
+# stavsys, crmechoz et al.). The infra droplet runs `webhook` on
+# deploy.dosmart.world; this workflow signs a {app, sha, env} payload with
+# HMAC-SHA256 and POSTs it to /hooks/deploy-app. The webhook script on the
+# droplet (webhook/scripts/deploy-app.sh) handles the rest: vendor artifact
+# extract via the webhook_deploy container (which has aws-cli baked in),
+# cache:clear, php-fpm reload, healthcheck.
+#
+# Trigger model (Phase 3, release gates production):
+#   push to master   → staging deploy   (apps-staging/, basic-auth-gated)
+#   release published → production deploy (apps-prod/, public)
 # =============================================================================
-# How to use:
-#   1. Copy this file into your app repo at .github/workflows/deploy.yml
-#   2. Replace newfactory_web (multiple places) with your app slug.
-#   3. Set APP_TYPE in the script body (symfony | nette | static).
-#   4. Set PROD_HOST_PRODUCTION (the public domain — e.g. dosmart.cz,
-#      crmechoz.dosmart.cz, nfportal.dosmart.world).
-#   5. Set PROD_HOST_STAGING (the staging domain — e.g.
-#      a4cert.staging.dosmart.world). Doesn't always derive from
-#      APP_NAME because some apps use a short name in the URL
-#      (a4cert_web → a4cert, koupelnystefl_web → koupelnystefl etc.).
-#   5. Configure GH Secrets in your app repo:
-#        SSH_HOST           = 164.90.173.166 (droplet)
-#        SSH_USER           = root
-#        SSH_PRIVATE_KEY    = deploy key matching ~root/.ssh/authorized_keys
-#
-# Trigger model (per user direction 2026-05-07):
-#   on: push to master   → staging deploy (apps-staging/, basic-auth-gated)
-#   on: release: published → production deploy (apps-prod/, public)
-#
-# Single job dispatched conditionally — no GH Environment manual approval
-# (per user "release alone gates"). Workflow_dispatch fallback for ad-hoc
-# deploys to either env.
-#
-# Aligned with Phase 2 standards:
-#   - appleboy/ssh-action@v1.2.0 (CVE patches)
-#   - migrations:migrate (no schema:update --force)
-#   - Blocking healthcheck at end
-#   - Container = `nginx_fpm_shared` (prod) or `staging-nginx_fpm_shared-1`
-#     (staging compose-default name)
-# =============================================================================
-
 name: Deploy newfactory_web to DigitalOcean
 
 on:
   push:
     branches: [main, master]
-    # Skip docs-only commits — README touches, CHANGELOG bumps, .editorconfig
-    # tweaks shouldn't trigger the ~5–10 min vendor build + webhook deploy.
-    # If you DO need to force a redeploy of unchanged code (e.g. to roll
-    # a config-only env-var rotation that lives outside the repo), use
-    # workflow_dispatch below.
-    # NOTE: only paths-ignore (not paths) is safe here — adding positive
-    # paths would risk missing legitimate code changes outside the listed
-    # set (Symfony assets, importmaps, factories, etc. — each app has a
-    # different layout).
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -65,10 +35,8 @@ on:
         default: staging
 
 jobs:
-  # Phase B (Composer-in-CI): build vendor + assets in a 4 vCPU / 16 GB
-  # GH-hosted runner, push to DO Spaces. Replaces the legacy
-  # "docker exec ... composer install" step that used to OOM-kill on the
-  # 2 GB droplet. See infra repo docs/DEPLOYMENT_STRATEGY.md.
+  # Phase B (composer-in-CI): build vendor artifact on a 4 vCPU GH runner,
+  # upload to s3://dosmart-fra1/deploy-artifacts/newfactory_web/.
   build-vendor:
     name: Build vendor artifact
     uses: ./.github/workflows/build-vendor.yml
@@ -86,193 +54,34 @@ jobs:
       cancel-in-progress: true
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Generate short SHA
-        id: short-sha
-        run: echo "short_sha=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
-
-      - name: Compute deploy targets
+      - name: Compute deploy env
         id: targets
         run: |
           if [[ "${{ github.event_name }}" == "release" ]] || [[ "${{ inputs.target }}" == "production" ]]; then
-            echo "env=production"               >> $GITHUB_OUTPUT
-            echo "host_dir=/srv/www/apps-prod/newfactory_web"  >> $GITHUB_OUTPUT
-            echo "container=nginx_fpm_shared"   >> $GITHUB_OUTPUT
-            echo "compose_project=www"          >> $GITHUB_OUTPUT
-            echo "prod_host=new-factory.cz"     >> $GITHUB_OUTPUT
-            # No basic auth on prod
-            echo "curl_auth="                   >> $GITHUB_OUTPUT
+            echo "env=production" >> $GITHUB_OUTPUT
           else
-            echo "env=staging"                  >> $GITHUB_OUTPUT
-            echo "host_dir=/srv/www/apps-staging/newfactory_web" >> $GITHUB_OUTPUT
-            echo "container=staging-nginx_fpm_shared-1" >> $GITHUB_OUTPUT
-            echo "compose_project=staging"      >> $GITHUB_OUTPUT
-            echo "prod_host=newfactory-web.staging.dosmart.world" >> $GITHUB_OUTPUT
-            # Healthcheck against the basic-auth-gated URL hits the localhost
-            # path inside the container — no auth header needed there. The
-            # gate is at Traefik. Skipping curl_auth.
-            echo "curl_auth="                   >> $GITHUB_OUTPUT
+            echo "env=staging" >> $GITHUB_OUTPUT
           fi
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Trigger deploy via webhook
         env:
-          DEPLOY_SHA: ${{ steps.short-sha.outputs.short_sha }}
-          FULL_SHA: ${{ github.sha }}
+          HMAC: ${{ secrets.WEBHOOK_HMAC_SECRET }}
+          APP: newfactory_web
+          SHA: ${{ github.sha }}
           DEPLOY_ENV: ${{ steps.targets.outputs.env }}
-          HOST_DIR: ${{ steps.targets.outputs.host_dir }}
-          CONTAINER: ${{ steps.targets.outputs.container }}
-          PROD_HOST: ${{ steps.targets.outputs.prod_host }}
-          COMPOSE_PROJECT: ${{ steps.targets.outputs.compose_project }}
-          # Spaces credentials for the on-droplet vendor-artifact extractor
-          # (scripts/extract-vendor-artifact.sh in the infra repo). The
-          # build-vendor job above just uploaded the tarball to
-          # s3://dosmart-fra1/deploy-artifacts/newfactory_web/vendor-${FULL_SHA}.tar.gz.
-          SPACES_ACCESS_KEY: ${{ secrets.SPACES_ACCESS_KEY }}
-          SPACES_SECRET_KEY: ${{ secrets.SPACES_SECRET_KEY }}
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: DEPLOY_SHA,FULL_SHA,DEPLOY_ENV,HOST_DIR,CONTAINER,PROD_HOST,COMPOSE_PROJECT,SPACES_ACCESS_KEY,SPACES_SECRET_KEY
-          command_timeout: 10m
-          script: |
-            set -e
+        run: |
+          PAYLOAD=$(jq -nc \
+              --arg app "$APP" \
+              --arg sha "$SHA" \
+              --arg env "$DEPLOY_ENV" \
+              '{app: $app, sha: $sha, env: $env}')
+          SIG="sha256=$(printf '%s' "$PAYLOAD" | openssl dgst -sha256 -hmac "$HMAC" | awk '{print $2}')"
 
-            APP_NAME="newfactory_web"
-            APP_TYPE="symfony"               # symfony | nette | static
-            CONTAINER_DIR="/srv/www/nginx/sites/${APP_NAME}"
-            REPO_URL="git@github.com:dstest11/newfactory_web.git"
-
-            echo "=================================================="
-            echo "  Deploying ${APP_NAME} → ${DEPLOY_ENV}"
-            echo "  SHA: ${DEPLOY_SHA}"
-            echo "  Host dir: ${HOST_DIR}"
-            echo "  Target container: ${CONTAINER}"
-            echo "  Healthcheck Host: ${PROD_HOST}"
-            echo "=================================================="
-
-            # First-deploy bootstrap
-            NEED_BOOTSTRAP=false
-            if [ ! -d "${HOST_DIR}/.git" ]; then
-              echo "=== ${DEPLOY_ENV} not on droplet yet — cloning ==="
-              mkdir -p "$(dirname "${HOST_DIR}")"
-              rm -rf "${HOST_DIR}"
-              git clone "${REPO_URL}" "${HOST_DIR}"
-              NEED_BOOTSTRAP=true
-            fi
-
-            cd "${HOST_DIR}"
-            echo "=== Pulling latest code (target ref: ${DEPLOY_SHA}) ==="
-            git fetch origin
-            git reset --hard "${DEPLOY_SHA}" || git reset --hard origin/$(git rev-parse --abbrev-ref HEAD)
-
-            # Staging compose stack — ensure nginx_fpm_shared container is
-            # running. Force-recreate on bootstrap (new mount added) so
-            # the mount table is fresh; otherwise just `up -d` (idempotent
-            # no-op if already running with same config).
-            if [ "${DEPLOY_ENV}" = "staging" ]; then
-              if ! docker ps --format '{{.Names}}' | grep -qx 'staging-nginx_fpm_shared-1'; then
-                echo "=== Staging container not running — starting compose stack ==="
-                cd /srv/www
-                docker compose -p staging --env-file .env.staging \
-                  -f docker-compose.yml \
-                  -f docker-compose.staging.yml \
-                  -f docker-compose.prod.yml \
-                  up -d --pull never nginx_fpm_shared
-                sleep 5
-                cd "${HOST_DIR}"
-              elif [ "${NEED_BOOTSTRAP}" = true ]; then
-                echo "=== Bootstrap: force-recreate staging container so new mount takes effect ==="
-                cd /srv/www
-                docker compose -p staging --env-file .env.staging \
-                  -f docker-compose.yml \
-                  -f docker-compose.staging.yml \
-                  -f docker-compose.prod.yml \
-                  up -d --force-recreate --pull never nginx_fpm_shared
-                sleep 5
-                cd "${HOST_DIR}"
-              fi
-            fi
-
-            # ----- Vendor artifact extract (Phase B, replaces composer install on droplet) -----
-            # The build-vendor job above just uploaded
-            # s3://dosmart-fra1/deploy-artifacts/${APP_NAME}/vendor-${FULL_SHA}.tar.gz.
-            # The infra repo ships scripts/extract-vendor-artifact.sh on the
-            # droplet at /srv/www/scripts/extract-vendor-artifact.sh which
-            # downloads + verifies SHA-256 + atomically swaps vendor/ +
-            # public/build/ + public/bundles/ into ${HOST_DIR}.
-            #
-            # Idempotent: if vendor/.deploy-sha already matches FULL_SHA,
-            # the script no-ops (allows re-runs of failed deploys without
-            # double-extract). aws-cli is auto-installed on first call.
-            if [ "${APP_TYPE}" != "static" ]; then
-              echo "=== Extracting vendor artifact for ${APP_NAME} @ ${FULL_SHA} ==="
-              export AWS_ACCESS_KEY_ID="${SPACES_ACCESS_KEY}"
-              export AWS_SECRET_ACCESS_KEY="${SPACES_SECRET_KEY}"
-              export APPS_ROOT="$(dirname "${HOST_DIR}")"
-              /srv/www/scripts/extract-vendor-artifact.sh "${APP_NAME}" "${FULL_SHA}" "${HOST_DIR}"
-            fi
-
-            # ----- Type-specific post-extract steps (no composer install) -----
-            if [ "${APP_TYPE}" = "symfony" ]; then
-              echo "=== Symfony post-extract steps ==="
-              echo "APP_ENV=prod" > "${HOST_DIR}/.env.local"
-              docker exec "${CONTAINER}" sh -c "cd ${CONTAINER_DIR} && mkdir -p var/data var/cache var/log"
-              docker exec "${CONTAINER}" sh -c "chown -R www-data:www-data ${CONTAINER_DIR}/var 2>/dev/null" || true
-              docker exec "${CONTAINER}" sh -c \
-                "cd ${CONTAINER_DIR} && APP_ENV=prod \
-                  php -d memory_limit=512M bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration"
-
-              # Staging only: if there are no migration files (apps that
-              # rely on doctrine:schema:update at first deploy — common
-              # for SQLite apps), force-create the schema. Production
-              # NEVER runs schema:update --force (data loss risk).
-              if [ "${DEPLOY_ENV}" = "staging" ]; then
-                MIGRATION_COUNT=$(docker exec "${CONTAINER}" sh -c \
-                  "ls -1 ${CONTAINER_DIR}/migrations/*.php 2>/dev/null | wc -l" || echo 0)
-                if [ "${MIGRATION_COUNT}" -eq 0 ]; then
-                  echo "=== No migrations — forcing schema:update on staging ==="
-                  docker exec "${CONTAINER}" sh -c \
-                    "cd ${CONTAINER_DIR} && APP_ENV=prod \
-                      php -d memory_limit=512M bin/console doctrine:schema:update --force --complete --no-interaction" || true
-                fi
-              fi
-              # cache:clear is still needed (tags app config + opcache invalidation
-              # via FPM restart below). assets:install + asset-map:compile are
-              # already baked into the vendor artifact by the build-vendor job —
-              # not re-run here.
-              docker exec "${CONTAINER}" sh -c \
-                "cd ${CONTAINER_DIR} && APP_ENV=prod \
-                  php -d memory_limit=512M bin/console cache:clear --no-interaction"
-              docker exec "${CONTAINER}" sh -c "chown -R www-data:www-data ${CONTAINER_DIR}/var 2>/dev/null" || true
-            elif [ "${APP_TYPE}" = "nette" ]; then
-              echo "=== Nette post-extract steps ==="
-              # Vendor already extracted. Just clear Nette's compiled cache.
-              docker exec "${CONTAINER}" sh -c \
-                "find ${CONTAINER_DIR}/temp/cache -mindepth 1 -delete 2>/dev/null" || true
-            elif [ "${APP_TYPE}" = "static" ]; then
-              echo "=== Static deployment — no build steps ==="
-            fi
-
-            docker exec "${CONTAINER}" supervisorctl restart php-fpm
-
-            # Blocking healthcheck (Phase 2 standard)
-            echo "=== Healthcheck against ${PROD_HOST} ==="
-            sleep 2
-            CODE=$(docker exec "${CONTAINER}" sh -c \
-              "curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
-                -H 'Host: ${PROD_HOST}' http://127.0.0.1/" 2>&1 || echo "000")
-            echo "HTTP ${CODE}"
-            if ! [[ "${CODE}" =~ ^[23] ]]; then
-              echo "ERROR: deploy left ${PROD_HOST} returning HTTP ${CODE}"
-              docker exec "${CONTAINER}" sh -c "tail -50 ${CONTAINER_DIR}/var/log/prod.log 2>/dev/null" || true
-              exit 1
-            fi
-
-            echo "=================================================="
-            echo "  ${APP_NAME} (${DEPLOY_ENV}) deployed OK"
-            echo "  SHA: ${DEPLOY_SHA}"
-            echo "=================================================="
+          echo "Triggering deploy: app=$APP env=$DEPLOY_ENV sha=$SHA"
+          # -k tolerates Let's Encrypt outage / self-signed fallback (HMAC still
+          # authenticates the payload). Same pattern as live apps.
+          curl -fsS -k --max-time 600 -X POST \
+              https://deploy.dosmart.world/hooks/deploy-app \
+              -H "Content-Type: application/json" \
+              -H "X-Hub-Signature-256: $SIG" \
+              -d "$PAYLOAD"
