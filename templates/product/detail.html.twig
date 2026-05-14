@@ -206,22 +206,12 @@
             <h2 class="nf-display">Než se zeptáte<br><span class="nf-display--accent">— a&nbsp;možná jsme&nbsp;odpověděli.</span></h2>
         </header>
         <div class="nf-faq__list">
-            <details>
-                <summary><span class="nf-mono">[Q1]</span> Kdy reálně začne stroj těžit po objednávce?</summary>
-                <p>Při stavu skladem do 48 hodin od přijetí platby. Při dovozu z výroby 14–21 dní (zahrnuto v Standard delivery). Aktivace v hosting datacentru je vždy stejný den, kdy stroj dorazí.</p>
-            </details>
-            <details>
-                <summary><span class="nf-mono">[Q2]</span> Co se stane, pokud kurz BTC propadne a mining přestane být ziskový?</summary>
-                <p>Provoz lze kdykoliv pozastavit. Během pauzy se neúčtuje hosting ani elektřina. Stroj zůstává ve vlastnictví a fyzicky v datacentru. Při návratu výnosnosti znovu spustíme bez setupu.</p>
-            </details>
-            <details>
-                <summary><span class="nf-mono">[Q3]</span> Můžu si stroj odvézt domů?</summary>
-                <p>Ano, ALL-IN cena zahrnuje dopravu k vám. V tom případě odpadají měsíční hosting + monitoring poplatky. Doporučujeme však profesionální hosting — domácí provoz znamená hluk 70+ dB, vysokou teplotu a 3 kW konstantního příkonu (ASIC = ne pro byt).</p>
-            </details>
-            <details>
-                <summary><span class="nf-mono">[Q4]</span> Jaké jsou platební podmínky?</summary>
-                <p>50 % ALL-IN při objednávce, 50 % při fyzickém dovozu stroje do ČR. Platby bankovním převodem v CZK nebo přímo BTC podle aktuálního kurzu.</p>
-            </details>
+            {% for faq in faqs|default([]) %}
+                <details>
+                    <summary><span class="nf-mono">[Q{{ loop.index }}]</span> {{ faq.question }}</summary>
+                    <p>{{ faq.answer }}</p>
+                </details>
+            {% endfor %}
         </div>
     </section>
 
