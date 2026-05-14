@@ -192,35 +192,34 @@
             </div>
         </div>
 
-        <!-- Section 1 — MACHINES (full offer with prices) -->
+        <!-- Section 1 — MACHINES (3-up compact at-a-glance grid; full detail on /produkty/{slug}) -->
         <div class="content-section section--hidden content-section--scrollable nf-section-stroje" data-page="1">
             <header class="nf-section-stroje__head">
                 <span class="nf-eyebrow">[NABÍDKA / 03]</span>
                 <h1 class="nf-display nf-section-stroje__title">STROJE<br><span class="nf-display--accent">NA&nbsp;TĚŽBU</span></h1>
-                <p class="nf-section-stroje__lead">Tři ASIC mineři. Plně transparentní all-in cena <span class="nf-mono">— stroj + doprava + clo + pojištění v jednom čísle.</span> Hosting, monitoring a servis si vybíráte sami.</p>
+                <p class="nf-section-stroje__lead">Tři ASIC mineři side-by-side. Plně transparentní all-in cena <span class="nf-mono">— stroj + doprava + clo + pojištění v jednom čísle.</span> Detail rozpočtu a volitelné služby na stránce stroje.</p>
             </header>
 
-            <ol class="nf-machines">
+            <ol class="nf-machines nf-machines--triptych">
                 {% for product in products|default([]) %}
                     {% set base = product.machine_price_czk + product.accessories_czk %}
                     {% set required = 0 %}
-                    {% set optional_total = 0 %}
                     {% for line in product.service_lines %}
-                        {% if line.is_optional %}
-                            {% set optional_total = optional_total + line.price_czk %}
-                        {% else %}
+                        {% if not line.is_optional %}
                             {% set required = required + line.price_czk %}
                         {% endif %}
                     {% endfor %}
                     {% set allin = base + required %}
                     {% set efficiency = (product.power_w / (product.hashrate|split(' ')[0]))|round(1) %}
 
-                    <li class="nf-machine" id="machine-{{ product.slug }}">
-                        <span class="nf-machine__index">{{ '%02d'|format(loop.index) }}</span>
-                        <span class="nf-machine__badge nf-machine__badge--{{ product.delivery|lower|replace({' ': '-'}) }}">{{ product.delivery }}</span>
+                    <li class="nf-machine nf-machine--compact" id="machine-{{ product.slug }}" data-product-slug="{{ product.slug }}">
+                        <header class="nf-machine__compact-head">
+                            <span class="nf-machine__index">{{ '%02d'|format(loop.index) }}</span>
+                            <span class="nf-machine__badge nf-machine__badge--{{ product.delivery|lower|replace({' ': '-'}) }}">{{ product.delivery }}</span>
+                        </header>
 
                         <div class="nf-machine__heading">
-                            <p class="nf-machine__kicker"><span class="nf-mono">{{ product.manufacturer|upper }}</span> · <span class="nf-mono">{{ product.algorithm }}</span> · <span class="nf-mono">{{ product.currency_type|upper }}</span></p>
+                            <p class="nf-machine__kicker"><span class="nf-mono">{{ product.manufacturer|upper }}</span> · <span class="nf-mono">{{ product.algorithm }}</span></p>
                             <h2 class="nf-display nf-machine__name">{{ product.name }}</h2>
                         </div>
 
@@ -230,43 +229,27 @@
                             <span class="nf-machine__hash-unit">{{ product.hashrate|split(' ')[1]|default('TH/s') }}</span>
                         </div>
 
-                        <dl class="nf-machine__stats">
+                        <dl class="nf-machine__stats nf-machine__stats--compact">
                             <div><dt>Příkon</dt><dd class="nf-mono">{{ product.power_w|number_format(0, ',', ' ') }} W</dd></div>
                             <div><dt>Účinnost</dt><dd class="nf-mono">{{ efficiency }} J/TH</dd></div>
-                            <div><dt>Roční výnos<sup title="Odhad podle aktuální obtížnosti sítě a kurzu BTC; výsledná hodnota není garantovaná.">ⓘ</sup></dt><dd class="nf-mono">{{ product.annual_btc }}</dd></div>
-                            <div><dt>El. @ 5&nbsp;Kč/kWh</dt><dd class="nf-mono">{{ product.electricity_yearly_czk|number_format(0, ',', ' ') }} Kč / rok</dd></div>
                         </dl>
 
-                        <aside class="nf-machine__price">
+                        <aside class="nf-machine__price nf-machine__price--compact">
                             <p class="nf-machine__price-eyebrow">ALL-IN CENA</p>
                             <p class="nf-display nf-machine__price-value">{{ allin|number_format(0, ',', ' ') }}<small> Kč</small></p>
-                            <ul class="nf-machine__price-lines">
-                                <li><span>Stroj</span><span class="nf-mono">{{ product.machine_price_czk|number_format(0, ',', ' ') }}</span></li>
-                                <li><span>Příslušenství</span><span class="nf-mono">{{ product.accessories_czk|number_format(0, ',', ' ') }}</span></li>
-                                <li><span>Doprava + clo + pojištění</span><span class="nf-mono">{{ required|number_format(0, ',', ' ') }}</span></li>
-                            </ul>
-                            <p class="nf-machine__price-note">+ <span class="nf-mono">{{ product.electricity_yearly_czk|number_format(0, ',', ' ') }} Kč</span> elektřina / rok (zvlášť)</p>
+                            <p class="nf-machine__price-note">+ <span class="nf-mono">{{ product.electricity_yearly_czk|number_format(0, ',', ' ') }} Kč</span> el. / rok</p>
                             <div class="nf-machine__actions">
-                                <a class="nf-btn nf-btn--primary" href="{{ path('contact', { product: product.slug }) }}">Nezávazná poptávka →</a>
-                                <a class="nf-btn nf-btn--ghost" href="{{ path('product_detail', { slug: product.slug }) }}">Detail stroje</a>
+                                <a class="nf-btn nf-btn--primary" href="{{ path('product_detail', { slug: product.slug }) }}">Detail stroje →</a>
+                                <a class="nf-btn nf-btn--ghost" href="{{ path('contact', { product: product.slug }) }}">Nezávazná poptávka</a>
                             </div>
                         </aside>
-
-                        <details class="nf-machine__breakdown">
-                            <summary>Co dalšího lze přiobjednat <span class="nf-mono">[{{ product.service_lines|length }} položek]</span></summary>
-                            <ul>
-                                {% for line in product.service_lines %}
-                                    <li class="{{ line.is_optional ? 'is-optional' : 'is-required' }}">
-                                        <span>{{ line.is_optional ? '◇' : '◆' }} {{ line.name }}{% if line.is_optional %} <em>volitelné</em>{% endif %}</span>
-                                        <strong class="nf-mono">{{ line.price_czk|number_format(0, ',', ' ') }} Kč</strong>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                            <p class="nf-machine__breakdown-note">S volitelnými službami až <span class="nf-mono">{{ (allin + optional_total)|number_format(0, ',', ' ') }} Kč</span>.</p>
-                        </details>
                     </li>
                 {% endfor %}
             </ol>
+
+            <footer class="nf-section-stroje__foot">
+                <a class="nf-btn nf-btn--ghost" href="{{ path('product_list') }}">Plné srovnání &amp; rozpis služeb →</a>
+            </footer>
         </div>
 
         <!-- Section 2 — SERVICES -->
