@@ -1,3 +1,199 @@
-body {
-    background-color: skyblue;
+/* New Factory — non-Victor pages (list, detail, contact).
+   Victor SPA homepage uses its own CSS at /victor/styles/*.css. */
+
+:root {
+    --color-bg: #0a0a0a;
+    --color-surface: #161616;
+    --color-surface-2: #1f1f1f;
+    --color-text: #e8e8e8;
+    --color-muted: #8a8a8a;
+    --color-accent: #FF6600;          /* matches Victor LettersColor */
+    --color-accent-hover: #ffb347;
+    --color-border: #232323;
+    --color-success: #4ade80;
+    --color-error: #f87171;
+    --color-warn: #facc15;
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --max-width: 1200px;
 }
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: var(--font-sans); line-height: 1.55; font-size: 16px; }
+a { color: var(--color-accent); text-decoration: none; }
+a:hover { color: var(--color-accent-hover); text-decoration: underline; }
+
+/* Header */
+.site-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid var(--color-border); max-width: var(--max-width); margin: 0 auto; }
+.site-header__brand { font-size: 1.25rem; font-weight: 800; letter-spacing: 0.1em; color: var(--color-text); text-transform: uppercase; }
+.site-header__nav { display: flex; gap: 2rem; }
+.site-header__nav a { color: var(--color-muted); transition: color .2s; }
+.site-header__nav a.active, .site-header__nav a:hover { color: var(--color-text); text-decoration: none; }
+
+/* Buttons */
+.button { display: inline-block; padding: 0.65rem 1.25rem; border-radius: var(--radius-md); font-weight: 600; transition: all 0.2s; border: 2px solid transparent; cursor: pointer; text-decoration: none; text-align: center; font-size: 0.95rem; }
+.button--primary { background: var(--color-accent); color: #000; }
+.button--primary:hover { background: var(--color-accent-hover); text-decoration: none; }
+.button--secondary { background: transparent; color: var(--color-text); border-color: var(--color-border); }
+.button--secondary:hover { border-color: var(--color-accent); color: var(--color-accent); text-decoration: none; }
+.button--lg { padding: 1rem 1.75rem; font-size: 1.05rem; }
+
+/* ============== /produkty list page ============== */
+.page-list { max-width: var(--max-width); margin: 0 auto; padding: 2rem; }
+.page-list__intro h1 { font-size: clamp(2rem, 4vw, 2.75rem); margin: 0 0 0.5rem; }
+.page-list__intro p { color: var(--color-muted); margin: 0 0 2.5rem; max-width: 700px; }
+
+.product-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 2rem; }
+.product-list__box { position: relative; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column; }
+.product-list__badge { position: absolute; top: 1rem; left: 1rem; padding: 0.25rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.product-list__badge--fast-track { background: var(--color-accent); color: #000; }
+.product-list__badge--standard { background: var(--color-surface-2); color: var(--color-muted); border: 1px solid var(--color-border); }
+.product-list__image-link { display: block; text-align: center; padding: 1rem 0; }
+.product-list__image { max-width: 100%; height: 180px; object-fit: contain; border-radius: var(--radius-md); }
+.product-list__head { text-align: center; }
+.product-list__title { margin: 0.5rem 0 0.25rem; font-size: 1.25rem; }
+.product-list__title a { color: var(--color-text); }
+.product-list__title a:hover { color: var(--color-accent); }
+.product-list__category { margin: 0 0 1rem; color: var(--color-muted); font-size: 0.85rem; }
+.product-list__specs { display: grid; gap: 0.5rem; margin: 1rem 0; padding: 1rem 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+.product-list__specs > div { display: flex; justify-content: space-between; font-size: 0.9rem; }
+.product-list__specs dt { color: var(--color-muted); margin: 0; }
+.product-list__specs dt small { font-size: 0.75rem; }
+.product-list__specs dd { margin: 0; font-weight: 600; }
+.product-list__pricing { margin: 0.5rem 0 1.25rem; }
+.product-list__price-line { display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.9rem; color: var(--color-muted); }
+.product-list__price-line strong { color: var(--color-text); font-weight: 600; }
+.product-list__price-total { display: flex; justify-content: space-between; padding: 0.6rem 0; margin-top: 0.5rem; border-top: 1px solid var(--color-border); font-size: 1.05rem; }
+.product-list__price-total strong { color: var(--color-accent); font-size: 1.25rem; font-weight: 800; }
+.product-list__price-energy { margin: 0.35rem 0 0; font-size: 0.8rem; color: var(--color-warn); }
+.product-list__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem; }
+.product-list__btn { width: 100%; }
+.product-list__details summary { color: var(--color-muted); font-size: 0.85rem; cursor: pointer; padding: 0.5rem 0; }
+.product-list__details summary:hover { color: var(--color-text); }
+.product-list__breakdown { list-style: none; padding: 0.5rem 0 0; margin: 0; }
+.product-list__breakdown li { display: flex; justify-content: space-between; padding: 0.35rem 0; font-size: 0.85rem; border-bottom: 1px solid var(--color-surface-2); }
+.product-list__breakdown li.is-optional { color: var(--color-muted); }
+.product-list__breakdown li em { font-style: italic; font-size: 0.75rem; }
+
+/* FAQ on list page */
+.page-list__faq { margin: 4rem 0 2rem; }
+.page-list__faq h2 { font-size: 1.75rem; margin: 0 0 1.5rem; text-align: center; }
+.page-list__faq details { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+.page-list__faq summary { font-weight: 600; cursor: pointer; padding: 0.25rem 0; }
+.page-list__faq summary:hover { color: var(--color-accent); }
+.page-list__faq p { margin: 0.75rem 0 0; color: var(--color-muted); line-height: 1.6; }
+
+/* ============== /produkty/{slug} detail page ============== */
+.page-detail { max-width: var(--max-width); margin: 0 auto; padding: 2rem; }
+.page-detail__breadcrumb { margin: 0 0 1.5rem; font-size: 0.9rem; }
+.page-detail__hero { display: grid; grid-template-columns: minmax(280px, 400px) 1fr; gap: 2.5rem; align-items: center; padding-bottom: 2.5rem; border-bottom: 1px solid var(--color-border); }
+@media (max-width: 768px) { .page-detail__hero { grid-template-columns: 1fr; } }
+.page-detail__hero-image { position: relative; text-align: center; }
+.page-detail__hero-image img { max-width: 100%; height: auto; border-radius: var(--radius-lg); }
+.page-detail__badge { position: absolute; top: 1rem; left: 1rem; padding: 0.35rem 1rem; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.page-detail__badge--fast-track { background: var(--color-accent); color: #000; }
+.page-detail__badge--standard { background: var(--color-surface-2); color: var(--color-muted); border: 1px solid var(--color-border); }
+.page-detail__hero-info h1 { font-size: clamp(1.75rem, 3.5vw, 2.5rem); margin: 0 0 0.5rem; }
+.page-detail__subtitle { color: var(--color-muted); margin: 0 0 1.5rem; }
+.page-detail__metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+@media (max-width: 600px) { .page-detail__metrics { grid-template-columns: 1fr; } }
+.page-detail__metric { background: var(--color-surface); border-radius: var(--radius-md); padding: 1rem; text-align: center; border: 1px solid var(--color-border); }
+.page-detail__metric strong { display: block; font-size: 1.1rem; color: var(--color-accent); margin-bottom: 0.25rem; }
+.page-detail__metric span { font-size: 0.75rem; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.page-detail__cta { display: inline-block; }
+
+/* Pricing table */
+.page-detail__pricing { margin: 3rem 0; }
+.page-detail__pricing h2 { font-size: 1.75rem; margin: 0 0 0.5rem; }
+.page-detail__pricing-lead { color: var(--color-muted); margin: 0 0 1.5rem; }
+.pricing-table { width: 100%; border-collapse: collapse; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; }
+.pricing-table th, .pricing-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--color-border); }
+.pricing-table th { background: var(--color-surface-2); color: var(--color-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.pricing-table .pricing-table__price { text-align: right; white-space: nowrap; }
+.pricing-table tr.is-optional td { color: var(--color-muted); font-size: 0.9rem; }
+.pricing-table__total td { padding: 1rem; font-size: 1.05rem; background: rgba(255, 102, 0, 0.1); }
+.pricing-table__total strong { color: var(--color-accent); font-size: 1.2rem; }
+.pricing-table__optional td { padding: 0.75rem 1rem; color: var(--color-muted); font-size: 0.9rem; }
+.pricing-table__energy td { padding: 0.75rem 1rem; color: var(--color-warn); font-size: 0.85rem; border-top: 1px dashed var(--color-border); }
+
+/* Specs */
+.page-detail__specs { margin: 3rem 0; }
+.page-detail__specs h2 { font-size: 1.5rem; margin: 0 0 1rem; }
+.specs-table { width: 100%; border-collapse: collapse; }
+.specs-table th, .specs-table td { padding: 0.65rem 1rem; border-bottom: 1px solid var(--color-border); text-align: left; }
+.specs-table th { width: 30%; color: var(--color-muted); font-weight: 500; font-size: 0.9rem; }
+.specs-table td { font-weight: 600; }
+
+/* Description block */
+.page-detail__description { margin: 3rem 0; padding: 2rem; background: var(--color-surface); border-left: 4px solid var(--color-accent); border-radius: var(--radius-md); }
+.page-detail__description h2 { color: var(--color-accent); margin: 0 0 1rem; }
+.page-detail__description ul { margin: 1rem 0; padding-left: 1.25rem; }
+.page-detail__description ul li { margin: 0.5rem 0; color: var(--color-muted); }
+.page-detail__description ul li strong { color: var(--color-text); }
+
+/* FAQ on detail page */
+.page-detail__faq { margin: 3rem 0; }
+.page-detail__faq h2 { font-size: 1.5rem; margin: 0 0 1rem; }
+.page-detail__faq details { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 0.5rem; }
+.page-detail__faq summary { font-weight: 600; cursor: pointer; }
+.page-detail__faq summary:hover { color: var(--color-accent); }
+.page-detail__faq p { margin: 0.75rem 0 0; color: var(--color-muted); }
+
+.page-detail__disclaimer { color: var(--color-muted); margin: 2rem 0 0; max-width: 800px; }
+
+/* ============== Section 1 + 3 on Victor SPA (overrides for embedded grids) ============== */
+.content-section--scrollable { overflow-y: auto; max-height: 90vh; padding: 2rem; }
+.machine-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0; text-align: left; }
+.machine-card { position: relative; background: rgba(22, 22, 22, 0.92); border: 1px solid rgba(255, 102, 0, 0.3); border-radius: var(--radius-lg); padding: 1.25rem; }
+.machine-card__badge { position: absolute; top: 0.75rem; left: 0.75rem; padding: 0.2rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
+.machine-card__badge--fast-track { background: var(--color-accent); color: #000; }
+.machine-card__badge--standard { background: var(--color-surface-2); color: var(--color-muted); }
+.machine-card__image { width: 100%; height: 140px; object-fit: contain; margin: 1rem 0; }
+.machine-card__title { font-size: 1.15rem; margin: 0 0 0.25rem; color: var(--color-text); }
+.machine-card__subtitle { font-size: 0.8rem; color: var(--color-muted); margin: 0 0 0.75rem; }
+.machine-card__specs { display: grid; gap: 0.4rem; margin: 0.75rem 0; padding: 0.5rem 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+.machine-card__specs > div { display: flex; justify-content: space-between; font-size: 0.8rem; }
+.machine-card__specs dt, .machine-card__specs dd { margin: 0; }
+.machine-card__specs dt { color: var(--color-muted); }
+.machine-card__price { margin: 0.75rem 0; }
+.machine-card__price-row { display: flex; justify-content: space-between; padding: 0.2rem 0; font-size: 0.8rem; color: var(--color-muted); }
+.machine-card__price-row strong { color: var(--color-text); }
+.machine-card__price-total { display: flex; justify-content: space-between; padding: 0.5rem 0; border-top: 1px solid var(--color-border); margin-top: 0.4rem; }
+.machine-card__price-total strong { color: var(--color-accent); font-size: 1.15rem; font-weight: 800; }
+.machine-card__price-energy { font-size: 0.7rem; color: var(--color-warn); margin: 0.2rem 0 0; }
+.machine-card__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-top: 0.75rem; }
+.machine-card__btn { font-size: 0.8rem !important; padding: 0.5rem !important; }
+.machine-card__breakdown { margin-top: 0.5rem; }
+.machine-card__breakdown summary { color: var(--color-muted); font-size: 0.8rem; cursor: pointer; padding: 0.3rem 0; }
+.machine-card__breakdown ul { list-style: none; padding: 0.5rem 0 0; margin: 0; max-height: 200px; overflow-y: auto; }
+.machine-card__breakdown li { display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.75rem; border-bottom: 1px solid var(--color-surface-2); }
+.machine-card__breakdown li.is-optional { color: var(--color-muted); }
+.machine-card__breakdown-note { font-size: 0.75rem; color: var(--color-muted); margin: 0.5rem 0 0; }
+
+/* Benefits grid (Section 3 — Proč nás) */
+.benefits-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin: 1.5rem 0; text-align: left; }
+.benefit { background: rgba(22, 22, 22, 0.92); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1.25rem; }
+.benefit__title { font-size: 1rem; color: var(--color-accent); margin: 0 0 0.5rem; }
+.benefit p { font-size: 0.85rem; color: var(--color-muted); line-height: 1.5; margin: 0; }
+
+/* ============== Contact ============== */
+.page-contact { max-width: var(--max-width); margin: 0 auto; padding: 2rem; }
+.page-contact__intro h1 { font-size: 2rem; margin: 0 0 0.5rem; }
+.page-contact__intro p { color: var(--color-muted); margin: 0 0 1.5rem; }
+.page-contact__channels { list-style: none; padding: 0; margin: 1rem 0; color: var(--color-muted); }
+.page-contact__channels li { padding: 0.25rem 0; }
+.page-contact__form { display: grid; gap: 1rem; max-width: 600px; }
+.page-contact__form label { display: block; margin-bottom: 0.25rem; font-weight: 600; }
+.page-contact__form input, .page-contact__form textarea {
+    width: 100%; padding: 0.75rem; background: var(--color-surface);
+    border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+    color: var(--color-text); font-family: inherit; font-size: 1rem;
+}
+.page-contact__form input:focus, .page-contact__form textarea:focus { outline: 2px solid var(--color-accent); }
+.flash { padding: 1rem; border-radius: var(--radius-md); margin: 1rem 0; }
+.flash--success { background: rgba(74, 222, 128, 0.1); color: var(--color-success); border: 1px solid var(--color-success); }
+.flash--error { background: rgba(248, 113, 113, 0.1); color: var(--color-error); border: 1px solid var(--color-error); }
+
+.site-footer { padding: 2rem; text-align: center; color: var(--color-muted); font-size: 0.9rem; max-width: var(--max-width); margin: 0 auto; }

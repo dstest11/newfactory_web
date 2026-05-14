@@ -19,8 +19,12 @@ final class HomeControllerTest extends WebTestCase
         self::assertStringContainsString('NEW FACTORY', $body);
         self::assertStringContainsString('lang="cs"', $body);
         // Czech section headings prove the rebrand (not the original Victor copy).
-        self::assertStringContainsString('O NÁS', $body);
+        // Section 1 has STROJE NA TĚŽBU heading + Section 4 has NÁŠ TÝM.
         self::assertStringContainsString('STROJE', $body);
+        self::assertStringContainsString('SLUŽBY', $body);
+        self::assertStringContainsString('KONTAKT', $body);
+        // Sanity: NO mention of 2bminer/2bminers on the site (compliance).
+        self::assertStringNotContainsString('2bminer', $body);
         // Victor 3D assets must be referenced (CSS + JS bundle paths).
         self::assertStringContainsString('/victor/styles/main.css', $body);
         self::assertStringContainsString('/victor/main.js', $body);

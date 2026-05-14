@@ -49,7 +49,10 @@ export default class UI {
         ]
         events.forEach(event => {
             const element = uiWrapper.querySelector(event.selector)
-            element.addEventListener('click', event.cb)
+            // Skip optional UI elements (e.g. #button_video on newfactory_web,
+            // which removed the video popup) — Victor's original template
+            // assumed all selectors are present.
+            if (element) element.addEventListener('click', event.cb)
         })
 
         const footerYear = uiWrapper.querySelector('.footer-copy__date')

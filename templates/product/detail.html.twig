@@ -2,9 +2,25 @@
 
 {% block title %}{{ product.name }} — New Factory{% endblock %}
 
+{% block meta %}
+    <meta name="description" content="{{ product.name }} — {{ product.hashrate }} ASIC miner pro Bitcoin. Transparentní ALL-IN cena. {{ product.short_description }}">
+{% endblock %}
+
 {% block body %}
+{% set base = product.machine_price_czk + product.accessories_czk %}
+{% set required = 0 %}
+{% set optional_total = 0 %}
+{% for line in product.service_lines %}
+    {% if line.is_optional %}
+        {% set optional_total = optional_total + line.price_czk %}
+    {% else %}
+        {% set required = required + line.price_czk %}
+    {% endif %}
+{% endfor %}
+{% set allin = base + required %}
+
 <header class="site-header">
-    <a href="{{ path('home') }}" class="site-header__brand">New Factory</a>
+    <a href="{{ path('home') }}" class="site-header__brand">NEW FACTORY</a>
     <nav class="site-header__nav">
         <a href="{{ path('home') }}">Úvod</a>
         <a href="{{ path('product_list') }}">Stroje</a>
@@ -12,9 +28,129 @@
     </nav>
 </header>
 
-<main class="page-product-detail">
-    <p><a href="{{ path('product_list') }}">← Zpět na seznam strojů</a></p>
-    <h1>{{ product.name }}</h1>
-    <twig:PricingCard product="{{ product }}" />
+<main class="page-detail">
+    <p class="page-detail__breadcrumb"><a href="{{ path('product_list') }}">← Zpět na nabídku strojů</a></p>
+
+    <section class="page-detail__hero">
+        <div class="page-detail__hero-image">
+            {# Fixed portfolio image picked by product slug — Victor's stock images don't have product-specific shots. #}
+            {% set img_no = { 'antminer-s21-pro': 1, 'antminer-s21-hyd': 2, 'whatsminer-m60s': 3 }[product.slug]|default(1) %}
+            <img src="/victor/resources/images/portfolio/portfolio{{ img_no }}.jpg" alt="{{ product.name }}" />
+            <span class="page-detail__badge page-detail__badge--{{ product.delivery|lower|replace({' ': '-'}) }}">{{ product.delivery }}</span>
+        </div>
+        <div class="page-detail__hero-info">
+            <h1>{{ product.name }}</h1>
+            <p class="page-detail__subtitle">{{ product.currency_type }} · {{ product.algorithm }} · {{ product.manufacturer }}</p>
+
+            <div class="page-detail__metrics">
+                <div class="page-detail__metric">
+                    <strong>48 hodin</strong>
+                    <span>Datum zapojení</span>
+                </div>
+                <div class="page-detail__metric">
+                    <strong>{{ product.hashrate }}</strong>
+                    <span>Hashrate</span>
+                </div>
+                <div class="page-detail__metric">
+                    <strong>{{ product.annual_btc }}</strong>
+                    <span>Odhadovaný hrubý příjem ⓘ</span>
+                </div>
+            </div>
+
+            <a class="button button--primary button--lg page-detail__cta" href="{{ path('contact', { product: product.slug }) }}">
+                Mám zájem — pošlete cenovou nabídku
+            </a>
+        </div>
+    </section>
+
+    <section class="page-detail__pricing">
+        <h2>Cenová kalkulace</h2>
+        <p class="page-detail__pricing-lead">Plně transparentní. Žádné skryté poplatky. ALL-IN cena obsahuje povinné položky; volitelné si určujete při poptávce.</p>
+
+        <table class="pricing-table">
+            <thead>
+                <tr><th>Položka</th><th>Typ</th><th class="pricing-table__price">Cena</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Cena stroje</strong></td><td>—</td><td class="pricing-table__price">{{ product.machine_price_czk|number_format(0, ',', ' ') }} Kč</td></tr>
+                <tr><td><strong>Příslušenství (kabely, vzduchové filtry)</strong></td><td>—</td><td class="pricing-table__price">{{ product.accessories_czk|number_format(0, ',', ' ') }} Kč</td></tr>
+                {% for line in product.service_lines %}
+                    <tr class="{{ line.is_optional ? 'is-optional' : 'is-required' }}">
+                        <td>{{ line.name }}</td>
+                        <td>{{ line.is_optional ? 'volitelné' : 'povinné' }}</td>
+                        <td class="pricing-table__price">{{ line.price_czk|number_format(0, ',', ' ') }} Kč</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="pricing-table__total">
+                    <td colspan="2"><strong>ALL-IN cena (jen povinné)</strong></td>
+                    <td class="pricing-table__price"><strong>{{ allin|number_format(0, ',', ' ') }} Kč</strong></td>
+                </tr>
+                <tr class="pricing-table__optional">
+                    <td colspan="2">S volitelnými službami (hosting, monitoring, údržba na 12 měs., garance uptime)</td>
+                    <td class="pricing-table__price">{{ (allin + optional_total)|number_format(0, ',', ' ') }} Kč</td>
+                </tr>
+                <tr class="pricing-table__energy">
+                    <td colspan="2">+ elektřina @ 5 Kč/kWh (24/7 provoz)</td>
+                    <td class="pricing-table__price">{{ product.electricity_yearly_czk|number_format(0, ',', ' ') }} Kč / rok</td>
+                </tr>
+            </tfoot>
+        </table>
+    </section>
+
+    <section class="page-detail__specs">
+        <h2>Technické parametry</h2>
+        <table class="specs-table">
+            <tr><th>Výrobce</th><td>{{ product.manufacturer }}</td></tr>
+            <tr><th>Představení</th><td>{{ product.release_date }}</td></tr>
+            <tr><th>Hashrate</th><td>{{ product.hashrate }}</td></tr>
+            <tr><th>Algoritmus</th><td>{{ product.algorithm }}</td></tr>
+            <tr><th>Příkon</th><td>{{ product.power_w|number_format(0, ',', ' ') }} W</td></tr>
+            <tr><th>Energetická efektivita</th><td>{{ (product.power_w / (product.hashrate|split(' ')[0]))|round(1) }} J/TH</td></tr>
+            <tr><th>Rozměry</th><td>{{ product.dimensions }}</td></tr>
+            <tr><th>Váha</th><td>{{ product.weight_kg }} kg</td></tr>
+            <tr><th>Provozní teplota</th><td>0 – 40 °C</td></tr>
+            <tr><th>Rozhraní</th><td>Ethernet (RJ45)</td></tr>
+        </table>
+    </section>
+
+    <section class="page-detail__description">
+        <h2>#Co byste měli vědět</h2>
+        <p>{{ product.short_description }}</p>
+        <ul>
+            <li><strong>Životnost stroje:</strong> 3–5 let při doporučovaném provozu a údržbě podle výrobce.</li>
+            <li><strong>Vlastníte stroj:</strong> Po odeslání ALL-IN platby je stroj váš. Nemáme nárok na podíl ze zisku ani provizi z vytěženého BTC.</li>
+            <li><strong>Vyplácení:</strong> BTC se těží na váš pool účet — výplaty řešíte přímo s pool providerem. Doporučujeme F2Pool, Antpool nebo Foundry USA.</li>
+            <li><strong>Servis:</strong> Po skončení záruky výrobce přebíráme bezplatný doživotní servis. Diagnostika + drobné opravy bez doplatků.</li>
+            <li><strong>SLA uptime:</strong> 98 % garance v rámci jednoho fakturačního měsíce. Delší výpadek kompenzován výnosem.</li>
+        </ul>
+    </section>
+
+    <section class="page-detail__faq">
+        <h2>Časté otázky k tomuto stroji</h2>
+        <details>
+            <summary>Kdy reálně začne stroj těžit po objednávce?</summary>
+            <p>Při stavu skladem do 48 hodin od přijetí platby. Při dovozu z výroby 14–21 dní (zahrnuto v Standard delivery). Aktivace v hosting datacentru je vždy stejný den, kdy stroj dorazí.</p>
+        </details>
+        <details>
+            <summary>Co se stane, pokud kurz BTC propadne a mining přestane být ziskový?</summary>
+            <p>Provoz lze kdykoliv pozastavit. Během pauzy se neúčtuje hosting ani elektřina. Stroj zůstává ve vlastnictví a fyzicky v datacentru. Při návratu výnosnosti znovu spustíme bez setupu.</p>
+        </details>
+        <details>
+            <summary>Můžu si stroj odvézt domů?</summary>
+            <p>Ano, ALL-IN cena zahrnuje dopravu k vám. V tom případě odpadají měsíční hosting + monitoring poplatky. Doporučujeme však profesionální hosting — domácí provoz znamená hluk 70+ dB, vysokou teplotu a 3 kW konstantního příkonu (ASIC = ne pro byt).</p>
+        </details>
+        <details>
+            <summary>Jaké jsou platební podmínky?</summary>
+            <p>50 % ALL-IN při objednávce, 50 % při fyzickém dovozu stroje do CZ. Platby bankovním převodem v CZK nebo přímo BTC podle aktuálního kurzu.</p>
+        </details>
+    </section>
+
+    <p class="page-detail__disclaimer"><small>Odhadovaný hrubý příjem v BTC vychází z aktuální obtížnosti sítě a kurzu k dnešnímu datu. Skutečný výnos je závislý na vývoji sítě, kurzu BTC a uptime. Údaje nejsou garantovaným výnosem.</small></p>
 </main>
+
+<footer class="site-footer">
+    <p>© {{ "now"|date("Y") }} New Factory · <a href="mailto:mining@new-factory.cz">mining@new-factory.cz</a></p>
+</footer>
 {% endblock %}
