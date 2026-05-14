@@ -1,0 +1,25 @@
+dosmart_cms_core:
+    strapi:
+        base_url: '%env(NEWFACTORY_STRAPI_URL)%'
+        api_token: '%env(NEWFACTORY_STRAPI_API_TOKEN)%'
+        timeout: 5
+    cache:
+        ttl: 3600
+        pool: cache.app
+    editable_fields:
+        # Whitelisted per-content-type JSONPath fields that the cms-core-bundle
+        # inline-edit overlay is allowed to PATCH back to Strapi. Plan 2 Task 6
+        # will expand this once Strapi schemas are created (Task 4, user-blocked).
+        newfactory-homepage:
+            - hero_title
+            - hero_subtitle
+            - intro_title
+            - intro_body
+        newfactory-about:
+            - title
+            - body
+        newfactory-contact-info:
+            - phone
+            - email
+            - address
+            - business_hours

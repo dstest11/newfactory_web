@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
+parameters:
+    newfactory.tenant: 'newfactory'
+    newfactory.strapi_url: '%env(NEWFACTORY_STRAPI_URL)%'
+    newfactory.strapi_api_token: '%env(NEWFACTORY_STRAPI_API_TOKEN)%'
+    newfactory.lead_recipient: '%env(NEWFACTORY_LEAD_RECIPIENT)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+
+    # cms-core-bundle Authenticator bridge — Plan 2 Task 5 will swap this
+    # for a Strapi Users-Permissions backed authenticator.
+    App\Cms\Authenticator\NewfactoryAuthenticator:
+        arguments:
+            $tenant: '%newfactory.tenant%'
+
+    Dosmart\Bundle\CmsCore\Authenticator\AuthenticatorInterface:
+        alias: App\Cms\Authenticator\NewfactoryAuthenticator
+        public: false
+
+    # Strapi v5 read client filtered to the `newfactory` tenant.
+    App\Service\StrapiContentClient:
+        arguments:
+            $baseUrl: '%newfactory.strapi_url%'
+            $apiToken: '%newfactory.strapi_api_token%'
+            $tenant: '%newfactory.tenant%'
+            $cacheTtl: 300
+
+    # ContactController — wire rate limiter + lead recipient explicitly so the
+    # constructor signature stays readable.
+    App\Controller\ContactController:
+        arguments:
+            $contactFormLimiter: '@limiter.contact_form'
+            $leadRecipient: '%newfactory.lead_recipient%'

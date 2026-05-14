@@ -1,0 +1,50 @@
+<article class="pricing-card {{ compact ? 'pricing-card--compact' : '' }}">
+    <header class="pricing-card__head">
+        <h3 class="pricing-card__title">{{ product.name }}</h3>
+        <p class="pricing-card__manufacturer">{{ product.manufacturer }} · {{ product.algorithm }}</p>
+    </header>
+
+    {% if not compact %}
+        <dl class="pricing-card__specs">
+            <dt>Hashrate</dt><dd>{{ product.hashrate }}</dd>
+            <dt>Příkon</dt><dd>{{ product.power_w|number_format(0, ',', ' ') }} W</dd>
+            <dt>Rozměry</dt><dd>{{ product.dimensions }}</dd>
+        </dl>
+        <p class="pricing-card__description">{{ product.short_description }}</p>
+    {% endif %}
+
+    <div class="pricing-card__breakdown">
+        <div class="pricing-card__line pricing-card__line--main">
+            <span>Cena stroje</span>
+            <strong>{{ product.machine_price_czk|number_format(0, ',', ' ') }} Kč</strong>
+        </div>
+
+        {% for line in product.service_lines|default([]) %}
+            <div class="pricing-card__line {{ line.is_optional ? 'pricing-card__line--optional' : '' }}">
+                <span>
+                    {{ line.name }}
+                    {% if line.is_optional %}<small>(volitelné)</small>{% endif %}
+                </span>
+                <strong>{{ line.price_czk|number_format(0, ',', ' ') }} Kč</strong>
+            </div>
+        {% endfor %}
+
+        <div class="pricing-card__line pricing-card__line--electricity">
+            <span>Elektřina (12 měs., 5 Kč/kWh)</span>
+            <strong>{{ this.electricityMonthlyCzk|number_format(0, ',', ' ') }} Kč / měs.</strong>
+        </div>
+
+        <div class="pricing-card__total">
+            <span>Celkem (bez volitelných)</span>
+            <strong>{{ this.totalCzk|number_format(0, ',', ' ') }} Kč</strong>
+        </div>
+    </div>
+
+    {% if not compact %}
+        <footer class="pricing-card__cta">
+            <a href="{{ path('contact', { product: product.slug }) }}" class="btn btn--primary">
+                Mám zájem
+            </a>
+        </footer>
+    {% endif %}
+</article>

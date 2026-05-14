@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Stroje — New Factory{% endblock %}
+
+{% block body %}
+<header class="site-header">
+    <a href="{{ path('home') }}" class="site-header__brand">New Factory</a>
+    <nav class="site-header__nav">
+        <a href="{{ path('home') }}">Úvod</a>
+        <a href="{{ path('product_list') }}" class="active">Stroje</a>
+        <a href="{{ path('contact') }}">Kontakt</a>
+    </nav>
+</header>
+
+<main class="page-products">
+    <section class="page-products__intro">
+        <h1>Mining stroje na míru</h1>
+        <p>Špičkové ASIC mineři pro Bitcoin. Dodáváme komplet — stroj + instalace + provoz + záruka.
+           Ceny vždy bez skrytých poplatků; elektřina se počítá za reálnou spotřebu na vašem tarifu.</p>
+    </section>
+
+    <section class="page-products__grid">
+        {% for product in products %}
+            <twig:PricingCard product="{{ product }}" />
+        {% else %}
+            <p>Momentálně neprodáváme. <a href="{{ path('contact') }}">Napište nám</a>, ozveme se.</p>
+        {% endfor %}
+    </section>
+</main>
+{% endblock %}

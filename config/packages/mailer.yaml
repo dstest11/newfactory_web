@@ -1,0 +1,8 @@
+framework:
+    mailer:
+        # mail-http-sdk transport — HTTPS bridge to mail-http-api on ell06
+        # because DigitalOcean blocks outbound SMTP from droplets. DSN format:
+        #   mail-relay+https://<api_key>@<host>/?source=<app_slug>
+        # In dev: NEWFACTORY_MAIL_RELAY_API_KEY is __PENDING_PLAN3_TASK3__,
+        # so MAILER_DSN stays `null://null`. Prod gets key from GH Secret.
+        dsn: '%env(MAILER_DSN)%'

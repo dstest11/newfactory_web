@@ -1,0 +1,24 @@
+# Sentry SDK → Bugsink (self-hosted at bugsink.dosmart.world).
+# Enabled only in prod + staging; bundle is gated in bundles.php for the
+# same envs. In dev + test the bundle isn't loaded so the file would error.
+when@prod:
+    sentry:
+        dsn: '%env(NEWFACTORY_SENTRY_DSN)%'
+        register_error_listener: true
+        register_error_handler: true
+        options:
+            environment: '%kernel.environment%'
+            release: '%env(default::APP_RELEASE)%'
+            traces_sample_rate: 0.0
+            send_default_pii: false
+
+when@staging:
+    sentry:
+        dsn: '%env(NEWFACTORY_SENTRY_DSN)%'
+        register_error_listener: true
+        register_error_handler: true
+        options:
+            environment: '%kernel.environment%'
+            release: '%env(default::APP_RELEASE)%'
+            traces_sample_rate: 0.0
+            send_default_pii: false

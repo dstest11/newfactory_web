@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ product.name }} — New Factory{% endblock %}
+
+{% block body %}
+<header class="site-header">
+    <a href="{{ path('home') }}" class="site-header__brand">New Factory</a>
+    <nav class="site-header__nav">
+        <a href="{{ path('home') }}">Úvod</a>
+        <a href="{{ path('product_list') }}">Stroje</a>
+        <a href="{{ path('contact') }}">Kontakt</a>
+    </nav>
+</header>
+
+<main class="page-product-detail">
+    <p><a href="{{ path('product_list') }}">← Zpět na seznam strojů</a></p>
+    <h1>{{ product.name }}</h1>
+    <twig:PricingCard product="{{ product }}" />
+</main>
+{% endblock %}

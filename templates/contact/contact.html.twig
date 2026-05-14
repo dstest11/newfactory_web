@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Kontakt — New Factory{% endblock %}
+
+{% block body %}
+<header class="site-header">
+    <a href="{{ path('home') }}" class="site-header__brand">New Factory</a>
+    <nav class="site-header__nav">
+        <a href="{{ path('home') }}">Úvod</a>
+        <a href="{{ path('product_list') }}">Stroje</a>
+        <a href="{{ path('contact') }}" class="active">Kontakt</a>
+    </nav>
+</header>
+
+<main class="page-contact">
+    <section class="page-contact__intro">
+        <h1>Pošlete nám poptávku</h1>
+        <p>Ozveme se vám do 24 hodin. Vše konzultujeme bezplatně.</p>
+        <ul class="page-contact__channels">
+            <li><strong>E-mail:</strong> mining@new-factory.cz</li>
+            <li><strong>Telefon:</strong> +420 777 123 456</li>
+        </ul>
+    </section>
+
+    {% for label, messages in app.flashes(['success', 'error']) %}
+        {% for message in messages %}
+            <div class="flash flash--{{ label }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+    {{ form_start(form, { attr: { class: 'page-contact__form', novalidate: 'novalidate' } }) }}
+        {{ form_row(form.name) }}
+        {{ form_row(form.email) }}
+        {{ form_row(form.phone) }}
+        {{ form_row(form.product) }}
+        {{ form_row(form.message) }}
+        {# Honeypot — visually hidden but present in DOM. Bots fill all fields. #}
+        <div style="position: absolute; left: -9999px;" aria-hidden="true">
+            {{ form_row(form.website, { label: 'Leave this blank' }) }}
+        </div>
+        <button type="submit" class="btn btn--primary">Odeslat poptávku</button>
+    {{ form_end(form) }}
+</main>
+{% endblock %}

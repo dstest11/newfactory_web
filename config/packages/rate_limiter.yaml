@@ -1,0 +1,8 @@
+framework:
+    rate_limiter:
+        # Contact-form rate limiter per IP. 5 successful submissions / hour is
+        # generous for legit users but stops spam runs cold.
+        contact_form:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '1 hour'
