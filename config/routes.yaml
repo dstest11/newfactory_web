@@ -9,3 +9,11 @@
 
 controllers:
     resource: routing.controllers
+
+# NOTE: cms-core-bundle ships its own routes.yaml at
+# @DosmartCmsCoreBundle/Resources/config/routes.yaml. We deliberately DO NOT
+# import it — see App\Controller\CmsApiController for the rationale (Symfony
+# Config's useAttributeAsKey rewrites hyphenated yaml keys to underscored
+# array keys, which breaks the bundle's registry-vs-Strapi slug parity).
+# Our CmsApiController owns /api/cms/single/{type} and
+# /api/cms/collection/{type}/{documentId} via #[Route] attributes.

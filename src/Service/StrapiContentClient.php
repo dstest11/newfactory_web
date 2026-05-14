@@ -67,6 +67,21 @@ final class StrapiContentClient
     }
 
     /**
+     * Invalidate cached reads for a content-type after a write so the next
+     * page render fetches fresh data from Strapi. Called by CmsApiController
+     * after a successful PATCH.
+     *
+     * Invalidates BOTH the singleType key (`strapi.<slug>.<tenant>`) and the
+     * collection key (`strapi.<slug>.<tenant>.collection`) since callers
+     * don't know which shape backs the entity.
+     */
+    public function invalidate(string $slug): void
+    {
+        $this->cache->delete(sprintf('strapi.%s.%s', $slug, $this->tenant));
+        $this->cache->delete(sprintf('strapi.%s.%s.collection', $slug, $this->tenant));
+    }
+
+    /**
      * @return array<string, mixed>|null
      */
     private function fetchCached(string $cacheKey, string $url, array $query): ?array

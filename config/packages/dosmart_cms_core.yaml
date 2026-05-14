@@ -7,14 +7,35 @@ dosmart_cms_core:
         ttl: 3600
         pool: cache.app
     editable_fields:
-        # Whitelisted per-content-type JSONPath fields that the cms-core-bundle
-        # inline-edit overlay is allowed to PATCH back to Strapi. Plan 2 Task 6
-        # will expand this once Strapi schemas are created (Task 4, user-blocked).
+        # Whitelisted JSONPath fields the cms-core-bundle inline-edit overlay
+        # is allowed to PATCH back to Strapi. The overlay sends `path` exactly
+        # as it appears in the template's data-cms-field="<type>:<path>"
+        # attribute — anything not listed here returns 403 from CmsProxyController.
         newfactory-homepage:
+            - hero_eyebrow
+            - hero_title_top
+            - hero_title_bottom
+            - hero_lead
+            - benefits_title
+            - benefits_lead
+            - team_title
+            - team_lead
+            - contact_title
+            - contact_lead
+            # Legacy keys kept so older schemas still validate.
             - hero_title
             - hero_subtitle
             - intro_title
             - intro_body
+        newfactory-product:
+            - short_description
+            - long_description
+        newfactory-faq:
+            - question
+            - answer
+        newfactory-benefit:
+            - title
+            - body
         newfactory-about:
             - title
             - body
@@ -23,3 +44,4 @@ dosmart_cms_core:
             - email
             - address
             - business_hours
+            - intro

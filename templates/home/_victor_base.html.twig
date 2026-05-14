@@ -11,9 +11,36 @@
     <link type="text/css" rel="stylesheet" href="/victor/styles/components.css" />
     <link type="text/css" rel="stylesheet" href="{{ asset('styles/app.css') }}" />
     <link rel="icon" type="image/png" href="/victor/resources/images/favicon.ico" />
+    {# CSRF token for inline-edit writes — only emitted for authenticated editors. #}
+    {% if is_granted('ROLE_EDITOR') %}
+        <meta name="cms-csrf-token" content="{{ csrf_token('cms_edit') }}">
+        <meta name="cms-editor-email" content="{{ app.user.userIdentifier }}">
+    {% endif %}
     {% block stylesheets %}{% endblock %}
+    {# Asset Mapper entrypoint — required for Stimulus controllers to register. #}
+    {% block importmap %}{{ importmap('app') }}{% endblock %}
 </head>
-<body>
+<body
+    {% if is_granted('ROLE_EDITOR') %}data-admin-mode="1"{% endif %}
+    data-controller="admin-shortcut{% if is_granted('ROLE_EDITOR') %} inline-edit{% endif %}"
+    data-admin-shortcut-login-path-value="{{ path('admin_login') }}"
+    data-admin-shortcut-logged-in-value="{{ is_granted('ROLE_EDITOR') ? 'true' : 'false' }}"
+    {% if is_granted('ROLE_EDITOR') %}
+    data-inline-edit-api-base-value="/api/cms"
+    data-inline-edit-csrf-meta-value="cms-csrf-token"
+    data-inline-edit-active-class="cms-edit-active"
+    {% endif %}
+>
+{% if is_granted('ROLE_EDITOR') %}
+    <aside class="cms-edit-bar" data-inline-edit-target="bar" role="status" aria-live="polite">
+        <span class="cms-edit-bar__pill cms-edit-bar__pill--idle">EDITOR · {{ app.user.userIdentifier }}</span>
+        <button type="button" class="cms-edit-bar__toggle" data-action="inline-edit#toggle" data-inline-edit-target="toggle">
+            <span data-inline-edit-target="toggleLabel">Zapnout editaci</span>
+            <span class="cms-edit-bar__kbd">Ctrl + Shift + A</span>
+        </button>
+        <a class="cms-edit-bar__link" href="{{ path('admin_logout') }}">Odhlásit</a>
+    </aside>
+{% endif %}
     {% block body %}{% endblock %}
     <script type="module" src="/victor/main.js"></script>
     {% block javascripts %}{% endblock %}

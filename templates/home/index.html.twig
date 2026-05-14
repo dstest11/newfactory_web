@@ -195,9 +195,9 @@
         <!-- Section 1 — MACHINES (full long-form editorial: rail numbers, ALL-IN sidebar, expandable detail) -->
         <div class="content-section section--hidden content-section--scrollable nf-section-stroje" data-page="1">
             <header class="nf-section-stroje__head">
-                <span class="nf-eyebrow">{{ homepage.hero_eyebrow|default('[NABÍDKA / 03]') }}</span>
-                <h1 class="nf-display nf-section-stroje__title">{{ homepage.hero_title_top|default('STROJE') }}<br><span class="nf-display--accent">{{ homepage.hero_title_bottom|default('NA TĚŽBU')|replace({' ': '&nbsp;'})|raw }}</span></h1>
-                <p class="nf-section-stroje__lead">{{ homepage.hero_lead|default('Tři ASIC mineři. Plně transparentní all-in cena — stroj + doprava + clo + pojištění v jednom čísle. Hosting, monitoring a servis si vybíráte sami.') }}</p>
+                <span class="nf-eyebrow" data-cms-field="newfactory-homepage:single:hero_eyebrow">{{ homepage.hero_eyebrow|default('[NABÍDKA / 03]') }}</span>
+                <h1 class="nf-display nf-section-stroje__title"><span data-cms-field="newfactory-homepage:single:hero_title_top">{{ homepage.hero_title_top|default('STROJE') }}</span><br><span class="nf-display--accent" data-cms-field="newfactory-homepage:single:hero_title_bottom">{{ homepage.hero_title_bottom|default('NA TĚŽBU') }}</span></h1>
+                <p class="nf-section-stroje__lead" data-cms-field="newfactory-homepage:single:hero_lead">{{ homepage.hero_lead|default('Tři ASIC mineři. Plně transparentní all-in cena — stroj + doprava + clo + pojištění v jednom čísle. Hosting, monitoring a servis si vybíráte sami.') }}</p>
             </header>
 
             <ol class="nf-machines">
@@ -331,13 +331,13 @@
 
         <!-- Section 3 — PROČ NÁS (transparency + customer questions answered) -->
         <div class="content-section section--hidden content-section--scrollable" data-page="3">
-            <h1 class="content-section__title">{{ homepage.benefits_title|default('PROČ PRÁVĚ NEW FACTORY') }}</h1>
-            <p class="content-section__text">{{ homepage.benefits_lead|default('Šest věcí, které dělají rozdíl mezi solidním a špatným hosting providerem.') }}</p>
+            <h1 class="content-section__title" data-cms-field="newfactory-homepage:single:benefits_title">{{ homepage.benefits_title|default('PROČ PRÁVĚ NEW FACTORY') }}</h1>
+            <p class="content-section__text" data-cms-field="newfactory-homepage:single:benefits_lead">{{ homepage.benefits_lead|default('Šest věcí, které dělají rozdíl mezi solidním a špatným hosting providerem.') }}</p>
             <div class="benefits-grid">
                 {% for benefit in benefits|default([]) %}
                     <article class="benefit">
-                        <h3 class="benefit__title">{{ benefit.title }}</h3>
-                        <p>{{ benefit.body }}</p>
+                        <h3 class="benefit__title"{% if benefit.documentId is defined %} data-cms-field="newfactory-benefit:{{ benefit.documentId }}:title"{% endif %}>{{ benefit.title }}</h3>
+                        <p{% if benefit.documentId is defined %} data-cms-field="newfactory-benefit:{{ benefit.documentId }}:body"{% endif %}>{{ benefit.body }}</p>
                     </article>
                 {% endfor %}
             </div>
@@ -346,8 +346,8 @@
         <!-- Section 4 — TEAM -->
         <div class="content-section section--hidden content-section--left-align" data-page="4">
             <div class="content-holder--left-align">
-                <h1 class="content-section__title">{{ homepage.team_title|default('NÁŠ TÝM') }}</h1>
-                <p class="content-section__text text-indent content-section__text-team">{{ homepage.team_lead|default('Firma stojí na lidech, ne na strojích. Náš tým má za sebou roky praxe v mining, hardware servisu i obchodě. Stroj prodáme i tomu, kdo nikdy nemíchal kryptoměnu — provedeme vás od první kalkulace po první vytěžený Bitcoin.') }}</p>
+                <h1 class="content-section__title" data-cms-field="newfactory-homepage:single:team_title">{{ homepage.team_title|default('NÁŠ TÝM') }}</h1>
+                <p class="content-section__text text-indent content-section__text-team" data-cms-field="newfactory-homepage:single:team_lead">{{ homepage.team_lead|default('Firma stojí na lidech, ne na strojích. Náš tým má za sebou roky praxe v mining, hardware servisu i obchodě. Stroj prodáme i tomu, kdo nikdy nemíchal kryptoměnu — provedeme vás od první kalkulace po první vytěžený Bitcoin.') }}</p>
                 <button class="content-section__button button button--secondary" id="button_team">PŘEDSTAVIT TÝM</button>
             </div>
             <div class="content-section__images">
@@ -368,8 +368,8 @@
 
         <!-- Section 5 — CONTACT -->
         <div class="content-section section--hidden" data-page="5">
-            <h1 class="content-section__title">{{ homepage.contact_title|default('KONTAKT') }}</h1>
-            <p class="content-section__text">{{ homepage.contact_lead|default('Máme rádi vaše otázky — ozveme se do 24 hodin. Konzultace zdarma.') }}</p>
+            <h1 class="content-section__title" data-cms-field="newfactory-homepage:single:contact_title">{{ homepage.contact_title|default('KONTAKT') }}</h1>
+            <p class="content-section__text" data-cms-field="newfactory-homepage:single:contact_lead">{{ homepage.contact_lead|default('Máme rádi vaše otázky — ozveme se do 24 hodin. Konzultace zdarma.') }}</p>
             <div class="content-section__buttons-holder">
                 <a class="content-section__button button button--icon" href="mailto:mining@new-factory.cz">
                     <img class="button__image" src="/victor/resources/images/icons/email.svg" alt="Email icon" />
