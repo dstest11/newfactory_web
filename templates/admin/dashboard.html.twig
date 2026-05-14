@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editor dashboard — New Factory{% endblock %}
+
+{% block meta %}
+    <meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block body %}
+<main class="nf-admin-shell">
+    <section class="nf-admin-card" aria-labelledby="dash-title">
+        <header class="nf-admin-card__head">
+            <span class="nf-eyebrow">[EDITOR / 02]</span>
+            <h1 class="nf-display nf-admin-card__title" id="dash-title">JSI PŘIHLÁŠEN</h1>
+            <p class="nf-admin-card__lead">
+                Jako <strong>{{ app.user.userIdentifier }}</strong>. Otevři libovolnou stránku
+                a klikni na text, který chceš upravit. Změny se okamžitě publikují přes Strapi.
+            </p>
+        </header>
+
+        <ul class="nf-admin-card__list">
+            <li><a href="{{ path('home') }}">&rarr; Úvod (homepage)</a></li>
+            <li><a href="{{ path('product_list') }}">&rarr; Produkty (seznam)</a></li>
+            <li><a href="{{ path('contact') }}">&rarr; Kontakt</a></li>
+        </ul>
+
+        <footer class="nf-admin-card__foot">
+            <p class="nf-mono nf-admin-card__hint">[ZKRATKA] Ctrl + Shift + A &mdash; přepnout editaci na live stránce</p>
+            <p>
+                <a href="{{ path('admin_logout') }}">Odhlásit se &rarr;</a>
+            </p>
+        </footer>
+    </section>
+</main>
+{% endblock %}

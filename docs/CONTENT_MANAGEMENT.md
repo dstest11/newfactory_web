@@ -143,6 +143,62 @@ Pokud potřebujete token vyměnit (např. po incidentu):
 - **„Změnil jsem cenu, ale web ji ukazuje starou."** — Cache 5 minut. Vyčkejte nebo si nechte vyčistit cache (viz výše).
 - **„Smazal jsem entry, ale stejně vidím obsah."** — Web aktivoval fallback (defaultní kopie). Buď entry znovu vytvořte, nebo se smiřte s tím, že fallback zobrazuje starou kopii.
 
+## Inline editace (rychlý režim)
+
+Pro drobné textové úpravy (titulek, lead, perex) nemusíte chodit do Strapi —
+stejnou změnu uděláte přímo na webu jako editor.
+
+### Přihlášení editora
+
+- URL: <https://new-factory.cz/admin/login>
+- E-mail + heslo: v `~/workspace/!!!_credentials.md` (sekce „Inline editor new-factory.cz").
+- **Klávesová zkratka**: `Ctrl + Shift + A` (na macOS `Cmd + Shift + A`)
+  - Pokud nejste přihlášen → otevře přihlašovací stránku.
+  - Pokud jste přihlášen → zapne/vypne editaci na aktuální stránce.
+- Sezení vydrží 7 dní (zaškrtnutý „Zapamatovat si mě").
+
+### Editace na stránce
+
+1. Po přihlášení vás web vrátí na *editor dashboard*. Klikněte na sekci, kterou chcete upravit, např. „Úvod (homepage)".
+2. V horní liště uvidíte oranžové tlačítko **„Zapnout editaci"** — kliknutí (nebo `Ctrl+Shift+A`) zapne overlay.
+3. Editovatelné texty se podtrhnou oranžovou tečkovanou čárou. Klikněte do textu, opravte ho.
+4. Po opuštění textu (`Tab`, `Esc`, klik mimo) se změna **automaticky uloží a publikuje** do Strapi.
+5. `Esc` během editace = vrátit původní text (žádné odeslání).
+
+### Co lze editovat inline
+
+V této první verzi (v0.6.0) jsou editovatelné jen homepage texty:
+
+- **Sekce 1 STROJE**: eyebrow, dvouřádkový titulek (horní a dolní řádek zvlášť), lead pod ním.
+- **Sekce 3 PROČ NÁS**: titulek + lead. (Karty jednotlivých benefitů budou editovatelné v další iteraci, jakmile v Strapi vznikne content-type `newfactory-benefit` s polem `documentId`.)
+- **Sekce 4 NÁŠ TÝM**: titulek + lead.
+- **Sekce 5 KONTAKT**: titulek + lead.
+
+**Co inline NEjde upravit** (pro tato pole použijte plnou Strapi administraci, viz výše):
+
+- Produkty (ceny, hashrate, parametry) — to jsou strukturovaná data, ne copy.
+- FAQ položky.
+- Nové produkty nebo benefity (nutno přidat ve Strapi).
+- Obrázky, slug, kontaktní info.
+
+### Co dělat, když editace nefunguje
+
+| Symptom | Příčina | Řešení |
+|---|---|---|
+| Po `Ctrl+Shift+A` se nic neděje | Stimulus se nenahrál (chyba JS) | Zkontrolujte konzoli prohlížeče; soft-refresh stránky (`Ctrl+F5`). |
+| Editovatelná pole nejsou podbarvená | Nejste přihlášen / sezení expirovalo | `Ctrl+Shift+A` → přihlásit znovu. |
+| „CHYBA · 403" po uložení | Pole není ve whitelistu | Pole musí být v `config/packages/dosmart_cms_core.yaml#editable_fields`. Kontaktujte vývojáře. |
+| „CHYBA · 502 / Strapi nedostupný" | Strapi instance je dole | Web se vrátí na zálohovaný text (fallback). Žádné změny se neztrácí — zkuste znovu za pár minut. |
+| Změna se uložila, ale na webu se nezobrazila | Cache 5 minut | Vyčkejte 5 minut nebo si nechte vyčistit cache pool (viz výše). |
+| Po obnovení stránky vidím starou verzi | Browser cache | Hard-refresh (`Ctrl+Shift+R`). |
+
+### Bezpečnost
+
+- Sezení používá Symfony Security firewall s bcrypt heslem + CSRF tokenem (skrytý v `<meta name="cms-csrf-token">`).
+- API endpointy `/api/cms/*` vyžadují roli `ROLE_EDITOR` — anonymní requesty vrací 401/redirect.
+- Heslo editora je sdílené pro všechny v allowlistu (env var `NEWFACTORY_EDITOR_EMAILS`). Rotace probíhá změnou `NEWFACTORY_EDITOR_PASSWORD_HASH` v GH Secrets.
+- Inline editace **nepoužívá Strapi admin token** v prohlížeči — overlay volá Symfony backend, který sám ověří roli a teprve potom volá Strapi přes server-side API token.
+
 ## Související dokumentace
 
 - Plné technické pozadí (Strapi v5 + tenant plugin): [`apps/strapi_v5/CLAUDE.md`](../../strapi_v5/CLAUDE.md)

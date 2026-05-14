@@ -1359,3 +1359,112 @@ a:hover { color: var(--color-accent-hover); }
 
 /* Suppress legacy machine-card / product-list classes if anything still references them */
 .machine-card, .product-list, .product-list__box, .page-list, .page-detail, .site-header, .page-contact { /* unstyled — replaced by nf-* */ }
+
+/* ============================================================================
+   Inline editor — admin shell + edit bar + editable field state.
+   ============================================================================ */
+.nf-admin-shell {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 1.25rem;
+}
+.nf-admin-card {
+    width: min(440px, 100%);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-bold);
+    padding: 2.25rem 1.75rem;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+}
+.nf-admin-card__head { margin-bottom: 1.5rem; }
+.nf-admin-card__title { font-size: clamp(1.6rem, 4vw, 2.2rem); margin: 0.25rem 0 0.5rem; letter-spacing: -0.02em; }
+.nf-admin-card__lead { color: var(--color-muted); font-size: 0.9rem; margin: 0; }
+
+.nf-admin-form { display: grid; gap: 1rem; }
+.nf-admin-field { display: grid; gap: 0.4rem; }
+.nf-admin-field--inline { display: flex; align-items: center; gap: 0.5rem; color: var(--color-muted); font-size: 0.85rem; }
+.nf-admin-field__label { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; color: var(--color-muted); text-transform: uppercase; }
+.nf-admin-field__input {
+    width: 100%;
+    background: var(--color-surface-3);
+    border: 1px solid var(--color-border-bold);
+    padding: 0.7rem 0.85rem;
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    border-radius: var(--radius-sm);
+}
+.nf-admin-field__input:focus { outline: none; border-color: var(--color-accent); box-shadow: 0 0 0 2px rgba(255, 102, 0, 0.16); }
+.nf-admin-form__submit { width: 100%; padding-block: 0.8rem; margin-top: 0.5rem; }
+
+.nf-admin-alert {
+    border: 1px solid var(--color-error);
+    background: rgba(248, 113, 113, 0.08);
+    color: var(--color-error);
+    padding: 0.65rem 0.9rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+}
+
+.nf-admin-card__foot { margin-top: 1.5rem; border-top: 1px dashed var(--color-border-bold); padding-top: 1rem; font-size: 0.8rem; color: var(--color-muted); display: grid; gap: 0.4rem; }
+.nf-admin-card__hint { margin: 0; letter-spacing: 0.05em; }
+.nf-admin-card__list { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: 0.4rem; font-family: var(--font-mono); }
+.nf-admin-card__list a { display: inline-block; padding: 0.4rem 0; }
+
+/* Editor bar (top fixed) */
+.cms-edit-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 0.4rem 0.85rem;
+    background: rgba(10, 10, 10, 0.92);
+    border-bottom: 1px solid var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--color-text);
+}
+.cms-edit-bar__pill {
+    padding: 0.25rem 0.55rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-bold);
+    color: var(--color-muted);
+    text-transform: uppercase;
+}
+.cms-edit-bar__pill[data-state="ok"] { color: var(--color-success); border-color: var(--color-success); }
+.cms-edit-bar__pill[data-state="err"] { color: var(--color-error); border-color: var(--color-error); }
+.cms-edit-bar__toggle {
+    background: transparent;
+    color: var(--color-accent);
+    border: 1px solid var(--color-accent);
+    padding: 0.3rem 0.7rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+}
+.cms-edit-bar__toggle--on { background: var(--color-accent); color: var(--color-bg); }
+.cms-edit-bar__kbd { margin-left: 0.55rem; opacity: 0.6; }
+.cms-edit-bar__link { color: var(--color-muted); }
+
+/* Push page content down so the bar doesn't overlap the first paint. */
+body[data-admin-mode="1"] { padding-top: 2.1rem; }
+
+/* Editable field visual state. Only appears when active class is on body. */
+body.cms-edit-active .cms-edit-field {
+    outline: 1px dashed rgba(255, 102, 0, 0.55);
+    outline-offset: 4px;
+    cursor: text;
+    transition: outline-color 0.15s ease, background-color 0.15s ease;
+}
+body.cms-edit-active .cms-edit-field:hover { outline-color: var(--color-accent); background-color: rgba(255, 102, 0, 0.06); }
+body.cms-edit-active .cms-edit-field--editing { outline: 2px solid var(--color-accent); outline-offset: 4px; background-color: rgba(255, 102, 0, 0.10); }
+body.cms-edit-active .cms-edit-field--saving { outline-color: var(--color-warn); background-color: rgba(250, 204, 21, 0.12); }
+body.cms-edit-active .cms-edit-field--ok { outline-color: var(--color-success); background-color: rgba(74, 222, 128, 0.12); }
+body.cms-edit-active .cms-edit-field--err { outline-color: var(--color-error); background-color: rgba(248, 113, 113, 0.12); }

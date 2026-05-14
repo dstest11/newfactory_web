@@ -5,6 +5,12 @@ parameters:
     newfactory.strapi_url: '%env(NEWFACTORY_STRAPI_URL)%'
     newfactory.strapi_api_token: '%env(NEWFACTORY_STRAPI_API_TOKEN)%'
     newfactory.lead_recipient: '%env(NEWFACTORY_LEAD_RECIPIENT)%'
+    # Editor allowlist (CSV of emails) + shared bcrypt password hash.
+    # Defaults keep the firewall safe (no email matches "__pending__"); real
+    # values come from GH Secrets via deploy.sh::override_env_var().
+    newfactory.editor_emails: '%env(default::NEWFACTORY_EDITOR_EMAILS)%'
+    newfactory.editor_emails_list: '%env(csv:default::NEWFACTORY_EDITOR_EMAILS)%'
+    newfactory.editor_password_hash: '%env(default::NEWFACTORY_EDITOR_PASSWORD_HASH)%'
 
 services:
     _defaults:
@@ -38,3 +44,14 @@ services:
         arguments:
             $contactFormLimiter: '@limiter.contact_form'
             $leadRecipient: '%newfactory.lead_recipient%'
+
+    # Editor identity provider — backed by env allowlist + bcrypt hash.
+    # security.yaml references this service id directly.
+    App\Cms\Security\StrapiUserProvider:
+        arguments:
+            $editorEmails: '%newfactory.editor_emails_list%'
+            $passwordHash: '%newfactory.editor_password_hash%'
+
+    # Rate-limit inline-edit writes per-user. Mirrors the contact_form limiter shape.
+    # Reused via service id (resolved in CmsApiController if needed; cms-core-bundle's
+    # CmsProxyController doesn't auto-wire this yet — keep ready for follow-up).

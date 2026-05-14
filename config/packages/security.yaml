@@ -1,11 +1,16 @@
 security:
     # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
+        App\Cms\Security\StrapiUser: 'auto'
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        # Editors load from the env allowlist
+        # (NEWFACTORY_EDITOR_EMAILS + NEWFACTORY_EDITOR_PASSWORD_HASH).
+        # See App\Cms\Security\StrapiUserProvider.
+        strapi_users:
+            id: App\Cms\Security\StrapiUserProvider
 
     firewalls:
         dev:
@@ -14,26 +19,42 @@ security:
             security: false
         main:
             lazy: true
-            provider: users_in_memory
-
-            # Activate different ways to authenticate:
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+            provider: strapi_users
+            form_login:
+                login_path: admin_login
+                check_path: admin_login
+                default_target_path: admin_dashboard
+                username_parameter: email
+                password_parameter: password
+                enable_csrf: true
+            logout:
+                path: admin_logout
+                target: /
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800   # 7 days — editor convenience
+                path: /admin
 
     # Note: Only the *first* matching rule is applied
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        # Login page must be reachable anonymously.
+        - { path: ^/admin/login$, roles: PUBLIC_ACCESS }
+        # All other /admin and inline-edit API surfaces require editor role.
+        - { path: ^/admin, roles: ROLE_EDITOR }
+        - { path: ^/api/cms, roles: ROLE_EDITOR }
 
 when@test:
     security:
         password_hashers:
             # Password hashers are resource-intensive by design to ensure security.
             # In tests, it's safe to reduce their cost to improve performance.
+            App\Cms\Security\StrapiUser:
+                algorithm: auto
+                cost: 4
+                time_cost: 3
+                memory_cost: 10
             Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
                 algorithm: auto
-                cost: 4 # Lowest possible value for bcrypt
-                time_cost: 3 # Lowest possible value for argon
-                memory_cost: 10 # Lowest possible value for argon
+                cost: 4
+                time_cost: 3
+                memory_cost: 10

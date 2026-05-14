@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Přihlášení editora — New Factory{% endblock %}
+
+{% block meta %}
+    <meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block body %}
+<main class="nf-admin-shell">
+    <section class="nf-admin-card" aria-labelledby="login-title">
+        <header class="nf-admin-card__head">
+            <span class="nf-eyebrow">[EDITOR / 01]</span>
+            <h1 class="nf-display nf-admin-card__title" id="login-title">PŘIHLÁŠENÍ</h1>
+            <p class="nf-admin-card__lead">Inline úprava obsahu — pouze pro autorizované editory.</p>
+        </header>
+
+        {% if error %}
+            <div class="nf-admin-alert" role="alert">
+                <strong>Chyba:</strong>
+                {% if error.messageKey is defined %}
+                    {{ error.messageKey|trans(error.messageData, 'security') }}
+                {% else %}
+                    Přihlášení selhalo. Zkontroluj e-mail a heslo.
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <form method="post" action="{{ path('admin_login') }}" class="nf-admin-form" novalidate>
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+            <label class="nf-admin-field">
+                <span class="nf-admin-field__label">E-mail</span>
+                <input
+                    type="email"
+                    name="email"
+                    value="{{ last_username }}"
+                    required
+                    autocomplete="email"
+                    autofocus
+                    class="nf-admin-field__input"
+                    placeholder="editor@dosmart.world"
+                >
+            </label>
+
+            <label class="nf-admin-field">
+                <span class="nf-admin-field__label">Heslo</span>
+                <input
+                    type="password"
+                    name="password"
+                    required
+                    autocomplete="current-password"
+                    class="nf-admin-field__input"
+                    placeholder="••••••••"
+                >
+            </label>
+
+            <label class="nf-admin-field nf-admin-field--inline">
+                <input type="checkbox" name="_remember_me" value="on" class="nf-admin-field__checkbox">
+                <span>Zapamatovat si mě (7 dní)</span>
+            </label>
+
+            <button type="submit" class="nf-btn nf-btn--primary nf-admin-form__submit">Přihlásit&nbsp;&rarr;</button>
+        </form>
+
+        <footer class="nf-admin-card__foot">
+            <p class="nf-mono nf-admin-card__hint">[ZKRATKA] Ctrl + Shift + A &mdash; přepnout editaci</p>
+            <p><a href="{{ path('home') }}">&larr; Zpět na web</a></p>
+        </footer>
+    </section>
+</main>
+{% endblock %}
