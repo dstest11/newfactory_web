@@ -401,6 +401,18 @@ function uiCallback() {
 // **** EVENT FUNCTIONS **** //
 
 function moveScene() {
+    // v0.4.3 UX fix — reset internal scroll position of the destination paged
+    // section so visitors entering a `.content-section--scrollable` panel
+    // always land at the top (otherwise they'd carry over the prior scrollTop
+    // and Section 1's 3-card grid could appear mid-stack on entry).
+    const destinationSection = document.querySelector(
+        `.content-section[data-page="${sceneMovedAmmount}"]`
+    )
+    if (destinationSection) {
+        destinationSection.scrollTop = 0
+        destinationSection.scrollLeft = 0
+    }
+
     new TWEEN.Tween(scene.position)
         .to({
             x: scene.position.x,

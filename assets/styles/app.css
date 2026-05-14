@@ -901,183 +901,141 @@ a:hover { color: var(--color-accent-hover); }
    tone aligned with /produkty templates but tighter (90vh max-height) and
    slightly more atmospheric since the orange canvas is behind it.
    ============================================================================ */
+/* v0.4.3 Section 1 UX fix — Direction A: 3-column at-a-glance triptych.
+   Visitor lands on Section 1 and sees all 3 ASICs side-by-side, no scroll
+   needed. Full breakdown/services list deferred to /produkty/{slug}. */
 .content-section--scrollable { overflow-y: auto; max-height: 90vh; padding: 2rem; }
 
-.nf-section-stroje { text-align: left; }
-.nf-section-stroje__head { max-width: 920px; margin: 0 0 3rem; }
-.nf-section-stroje__title { font-size: clamp(2.5rem, 7vw, 5.5rem); margin: 0 0 1.5rem; line-height: 0.92; color: var(--color-text); }
-.nf-section-stroje__lead { color: var(--color-muted); font-size: 1.05rem; max-width: 62ch; margin: 0; }
-.nf-section-stroje__lead .nf-mono { color: var(--color-text); font-size: 0.92rem; }
+.nf-section-stroje { text-align: left; display: flex; flex-direction: column; }
+.nf-section-stroje__head { max-width: 920px; margin: 0 0 2rem; }
+.nf-section-stroje__title { font-size: clamp(2rem, 5.5vw, 4rem); margin: 0 0 1rem; line-height: 0.92; color: var(--color-text); }
+.nf-section-stroje__lead { color: var(--color-muted); font-size: 1rem; max-width: 62ch; margin: 0; }
+.nf-section-stroje__lead .nf-mono { color: var(--color-text); font-size: 0.9rem; }
+.nf-section-stroje__foot { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed var(--color-border-bold); }
 
-.nf-machines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3rem; }
-.nf-machine {
-    position: relative;
+/* Triptych grid — 3 cards side-by-side at >= 1024px, stacks below */
+.nf-machines { list-style: none; margin: 0; padding: 0; }
+.nf-machines--triptych {
     display: grid;
-    grid-template-columns: 64px minmax(0, 1.4fr) minmax(0, 1fr);
-    grid-template-areas:
-        "rail  heading price"
-        "rail  hash    price"
-        "rail  stats   price"
-        "rail  break   break";
-    gap: 1.5rem;
-    padding: 1.5rem 0 2rem;
-    border-top: 1px dashed var(--color-border-bold);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
 }
-.nf-machine:first-child { border-top: 2px solid var(--color-accent); padding-top: 2rem; }
+
+.nf-machine--compact {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1.25rem 1.25rem 1.5rem;
+    border: 1px solid var(--color-border-bold);
+    border-top: 2px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    background: rgba(18, 18, 18, 0.92);
+}
+
+.nf-machine__compact-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    border-bottom: 1px dashed var(--color-border-bold);
+    padding-bottom: 0.85rem;
+}
 .nf-machine__index {
-    grid-area: rail;
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-size: 2.25rem;
     line-height: 0.85;
     letter-spacing: -0.06em;
     -webkit-text-stroke: 1px var(--color-accent);
     color: transparent;
 }
 .nf-machine__badge {
-    position: absolute;
-    top: 1.5rem;
-    right: 0;
-    padding: 0.25rem 0.6rem;
+    padding: 0.2rem 0.55rem;
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
-    font-size: 0.68rem;
+    font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+    align-self: center;
 }
 .nf-machine__badge--fast-track { background: var(--color-accent); color: #000; }
 .nf-machine__badge--standard { background: rgba(31, 31, 31, 0.92); color: var(--color-muted); border: 1px solid var(--color-border-bold); }
 
-.nf-machine__heading { grid-area: heading; }
-.nf-machine__kicker { margin: 0 0 0.5rem; font-size: 0.75rem; color: var(--color-muted); letter-spacing: 0.05em; }
+.nf-machine__heading { }
+.nf-machine__kicker { margin: 0 0 0.35rem; font-size: 0.7rem; color: var(--color-muted); letter-spacing: 0.05em; }
 .nf-machine__kicker .nf-mono { color: var(--color-text); }
 .nf-machine__name {
-    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    font-size: clamp(1.1rem, 1.6vw, 1.45rem);
     margin: 0;
     color: var(--color-text);
+    line-height: 1.05;
 }
 
 .nf-machine__hash {
-    grid-area: hash;
     display: flex;
     align-items: baseline;
-    gap: 0.75rem;
-    margin-top: 0.5rem;
-    border-top: 1px dashed var(--color-border-bold);
-    padding-top: 1rem;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding-top: 0.5rem;
 }
-.nf-machine__hash-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em; color: var(--color-muted); width: 5em; flex-shrink: 0; }
-.nf-machine__hash-value { font-size: clamp(2.5rem, 5vw, 4rem); color: var(--color-accent); line-height: 0.9; }
-.nf-machine__hash-unit { font-family: var(--font-mono); color: var(--color-muted); font-size: 0.85rem; font-weight: 600; }
+.nf-machine__hash-label { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.16em; color: var(--color-muted); width: 100%; }
+.nf-machine__hash-value { font-size: clamp(1.75rem, 3vw, 2.5rem); color: var(--color-accent); line-height: 0.9; }
+.nf-machine__hash-unit { font-family: var(--font-mono); color: var(--color-muted); font-size: 0.78rem; font-weight: 600; }
 
-.nf-machine__stats {
-    grid-area: stats;
-    margin: 1rem 0 0;
+.nf-machine__stats--compact {
+    margin: 0;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
 }
-.nf-machine__stats > div {
+.nf-machine__stats--compact > div {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    padding: 0.5rem 0.75rem 0.5rem 0;
-    gap: 0.75rem;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.5rem 0.5rem 0.5rem 0;
     border-bottom: 1px dashed var(--color-border);
-    font-size: 0.85rem;
+    font-size: 0.78rem;
 }
-.nf-machine__stats > div:nth-child(even) { padding-left: 0.75rem; padding-right: 0; border-left: 1px dashed var(--color-border); }
-.nf-machine__stats dt { margin: 0; color: var(--color-muted); }
-.nf-machine__stats dd { margin: 0; color: var(--color-text); font-weight: 700; text-align: right; }
+.nf-machine__stats--compact > div:nth-child(even) { padding-left: 0.5rem; padding-right: 0; border-left: 1px dashed var(--color-border); }
+.nf-machine__stats--compact dt { margin: 0; color: var(--color-muted); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.nf-machine__stats--compact dd { margin: 0; color: var(--color-text); font-weight: 700; }
 
-.nf-machine__price {
-    grid-area: price;
+.nf-machine__price--compact {
+    margin-top: auto;
     position: relative;
-    padding: 1.25rem;
-    background: rgba(22, 22, 22, 0.92);
+    padding: 1rem 1rem 1.1rem;
+    background: rgba(255, 102, 0, 0.04);
     border: 1px solid var(--color-border-bold);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
 }
-.nf-machine__price::before {
+.nf-machine__price--compact::before {
     content: "[CENA]";
     position: absolute;
     top: -0.65em;
-    left: 1rem;
-    padding: 0 0.5rem;
+    left: 0.85rem;
+    padding: 0 0.4rem;
     background: var(--mainCanvasBackground, #141414);
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     letter-spacing: 0.18em;
     color: var(--color-accent);
 }
-.nf-machine__price-eyebrow { margin: 0 0 0.25rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em; color: var(--color-muted); text-transform: uppercase; }
-.nf-machine__price-value { font-size: clamp(1.75rem, 3.5vw, 2.5rem); color: var(--color-accent); margin: 0 0 0.75rem; line-height: 1; }
+.nf-machine__price-eyebrow { margin: 0 0 0.2rem; font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.16em; color: var(--color-muted); text-transform: uppercase; }
+.nf-machine__price-value { font-size: clamp(1.4rem, 2.4vw, 1.85rem); color: var(--color-accent); margin: 0 0 0.4rem; line-height: 1; }
 .nf-machine__price-value small { font-size: 0.4em; font-weight: 600; letter-spacing: 0.02em; }
-.nf-machine__price-lines { list-style: none; margin: 0 0 0.5rem; padding: 0.5rem 0; border-top: 1px dashed var(--color-border); border-bottom: 1px dashed var(--color-border); }
-.nf-machine__price-lines li {
-    display: flex; justify-content: space-between; gap: 0.75rem;
-    padding: 0.15rem 0;
-    font-size: 0.78rem;
-    color: var(--color-muted);
-}
-.nf-machine__price-lines li .nf-mono { color: var(--color-text); font-weight: 600; }
-.nf-machine__price-note { font-size: 0.75rem; color: var(--color-warn); margin: 0 0 0.85rem; }
-.nf-machine__actions { display: flex; flex-direction: column; gap: 0.4rem; }
-.nf-machine__actions .nf-btn { font-size: 0.78rem; padding: 0.6rem 0.85rem; }
+.nf-machine__price-note { font-size: 0.68rem; color: var(--color-warn); margin: 0 0 0.7rem; }
+.nf-machine__actions { display: flex; flex-direction: column; gap: 0.35rem; }
+.nf-machine__actions .nf-btn { font-size: 0.72rem; padding: 0.55rem 0.7rem; text-align: center; }
 
-.nf-machine__breakdown { grid-area: break; margin-top: 1rem; }
-.nf-machine__breakdown summary {
-    list-style: none;
-    cursor: pointer;
-    padding: 0.5rem 0;
-    color: var(--color-muted);
-    font-size: 0.78rem;
-    font-family: var(--font-mono);
-    border-top: 1px dashed var(--color-border-bold);
-}
-.nf-machine__breakdown summary::-webkit-details-marker { display: none; }
-.nf-machine__breakdown summary::before { content: "+ "; color: var(--color-accent); font-weight: 700; }
-.nf-machine__breakdown[open] summary::before { content: "− "; }
-.nf-machine__breakdown ul {
-    list-style: none;
-    padding: 0.5rem 0;
-    margin: 0;
-    max-height: 240px;
-    overflow-y: auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 0 1.5rem;
-}
-.nf-machine__breakdown li {
-    display: flex; justify-content: space-between; gap: 0.75rem;
-    padding: 0.3rem 0;
-    font-size: 0.78rem;
-    border-bottom: 1px dashed var(--color-border);
-}
-.nf-machine__breakdown li.is-optional { color: var(--color-muted); }
-.nf-machine__breakdown li em { font-style: italic; font-size: 0.66rem; color: var(--color-dim); text-transform: uppercase; letter-spacing: 0.08em; }
-.nf-machine__breakdown-note { font-size: 0.78rem; color: var(--color-muted); margin: 0.75rem 0 0; }
-
-@media (max-width: 960px) {
-    .nf-machine {
-        grid-template-columns: 56px minmax(0, 1fr);
-        grid-template-areas:
-            "rail heading"
-            "rail hash"
-            "rail stats"
-            "rail price"
-            "break break";
-    }
-    .nf-machine__badge { top: 1rem; right: 0; }
+@media (max-width: 1023px) {
+    .nf-machines--triptych { grid-template-columns: 1fr; gap: 1rem; }
+    .nf-machine--compact { padding: 1rem; }
 }
 @media (max-width: 600px) {
-    .nf-machine {
-        grid-template-columns: 1fr;
-        grid-template-areas: "rail" "heading" "hash" "stats" "price" "break";
-        gap: 1rem;
-    }
-    .nf-machine__stats { grid-template-columns: 1fr; }
-    .nf-machine__stats > div:nth-child(even) { border-left: none; padding-left: 0; padding-right: 0; }
+    .nf-machine__stats--compact { grid-template-columns: 1fr; }
+    .nf-machine__stats--compact > div:nth-child(even) { border-left: none; padding-left: 0; padding-right: 0; }
 }
 
 /* ===== Section 3 benefits — kept light, harmonized with new tokens ===== */

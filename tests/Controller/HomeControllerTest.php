@@ -28,5 +28,13 @@ final class HomeControllerTest extends WebTestCase
         // Victor 3D assets must be referenced (CSS + JS bundle paths).
         self::assertStringContainsString('/victor/styles/main.css', $body);
         self::assertStringContainsString('/victor/main.js', $body);
+
+        // v0.4.3 regression guard — Section 1 must show ALL THREE machines
+        // at-a-glance (3-up triptych grid). Visitors can't be left thinking
+        // the offer is only one ASIC.
+        self::assertStringContainsString('nf-machines--triptych', $body);
+        self::assertStringContainsString('data-product-slug="antminer-s21-pro"', $body);
+        self::assertStringContainsString('data-product-slug="antminer-s21-hyd"', $body);
+        self::assertStringContainsString('data-product-slug="whatsminer-m60s"', $body);
     }
 }
