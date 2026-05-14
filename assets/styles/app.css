@@ -906,6 +906,32 @@ a:hover { color: var(--color-accent-hover); }
    needed. Full breakdown/services list deferred to /produkty/{slug}. */
 .content-section--scrollable { overflow-y: auto; max-height: 90vh; padding: 2rem; }
 
+/* v0.4.5 Section 1 width fix — STROJE long-form editorial slabs need
+   ~1200px to render the rail + heading + price-sidebar grid properly
+   (same as the standalone /produkty page). Victor's `.content` wrapper
+   is `width: 60%; max-width: 1250px` which clamps Section 1 to ~864px
+   on a 1440px viewport, squashing the layout. We break out of that
+   constraint for `[data-page="1"]` only, leaving Sections 0/2/3/4/5
+   untouched.
+
+   `.content` is `position: absolute; left: 50%; transform: translate(-50%,-50%)`
+   so we use viewport-relative width + a negative translate to recenter
+   under the same anchor. */
+.content-section--scrollable.nf-section-stroje[data-page="1"] {
+    width: min(1280px, 96vw);
+    max-width: 96vw;
+    /* Re-center under the parent `.content` (which is anchored at left:50% with
+       its own translate). Using calc on left + transform keeps it centered
+       in the viewport without changing the parent. */
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: left;
+    padding: 1.5rem clamp(1rem, 3vw, 2.5rem);
+    align-items: stretch;
+    justify-content: flex-start;
+}
+
 .nf-section-stroje { text-align: left; display: flex; flex-direction: column; }
 .nf-section-stroje__head { max-width: 920px; margin: 0 0 2rem; }
 .nf-section-stroje__title { font-size: clamp(2rem, 5.5vw, 4rem); margin: 0 0 1rem; line-height: 0.92; color: var(--color-text); }
@@ -1036,6 +1062,293 @@ a:hover { color: var(--color-accent-hover); }
 @media (max-width: 600px) {
     .nf-machine__stats--compact { grid-template-columns: 1fr; }
     .nf-machine__stats--compact > div:nth-child(even) { border-left: none; padding-left: 0; padding-right: 0; }
+}
+
+/* v0.4.5 Section 1 long-form `.nf-machine` (NOT compact/triptych) — mirrors
+   the `/produkty` `.nf-row` editorial grid: rail (index + badge) on the left,
+   heading + hash + stats stacked center, ALL-IN price sidebar on the right,
+   breakdown expander beneath spanning rail+center. Scoped to Section 1 via
+   the `[data-page="1"]` parent so it can't leak into the Section 2 triptych
+   cards. */
+.nf-section-stroje[data-page="1"] .nf-machines {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.nf-section-stroje[data-page="1"] .nf-machine:not(.nf-machine--compact) {
+    position: relative;
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1.4fr) minmax(0, 1fr);
+    grid-template-areas:
+        "rail    heading price"
+        "rail    hash    price"
+        "rail    stats   price"
+        "break   break   break";
+    column-gap: 2rem;
+    row-gap: 0.5rem;
+    align-items: start;
+    padding: 2rem 0 2.5rem;
+    border-top: 1px solid var(--color-border-bold);
+    border-bottom: 1px solid var(--color-border);
+}
+.nf-section-stroje[data-page="1"] .nf-machine:not(.nf-machine--compact):first-child {
+    border-top: 2px solid var(--color-accent);
+}
+
+/* Rail cell — `.nf-machine__index` + `.nf-machine__badge` (siblings) stack
+   vertically. The existing `.nf-machine__index` has a small font-size for
+   the triptych use; bump it for the long-form so it matches the
+   `.nf-row__index` "rail number" feel. */
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__index {
+    grid-area: rail;
+    align-self: start;
+    font-size: clamp(3.5rem, 6vw, 5.5rem);
+    line-height: 0.85;
+    letter-spacing: -0.06em;
+    position: sticky;
+    top: 1rem;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__badge {
+    grid-area: rail;
+    align-self: end;
+    justify-self: start;
+    margin-top: 0;
+    /* Stack below the index using a second grid row inside the rail area
+       via inline-block + manual offset; sticky on the parent keeps it in flow. */
+    position: relative;
+    top: clamp(4.5rem, 7vw, 7rem);
+}
+
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__heading { grid-area: heading; }
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__heading .nf-machine__kicker {
+    margin: 0 0 0.75rem;
+    font-size: 0.78rem;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__heading .nf-machine__name {
+    font-size: clamp(2rem, 4.2vw, 3.25rem);
+    margin: 0;
+    line-height: 1;
+}
+
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__hash {
+    grid-area: hash;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px dashed var(--color-border-bold);
+    flex-wrap: nowrap;
+    gap: 0.85rem;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__hash .nf-machine__hash-label {
+    width: 5.5em;
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__hash .nf-machine__hash-value {
+    font-size: clamp(3rem, 7vw, 5rem);
+    line-height: 0.9;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__hash .nf-machine__hash-unit {
+    font-size: 1rem;
+}
+
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__stats {
+    grid-area: stats;
+    margin: 1.25rem 0 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    border-top: 1px dashed var(--color-border-bold);
+    list-style: none;
+    padding: 0;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__stats > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.75rem 1rem 0.75rem 0;
+    border-bottom: 1px dashed var(--color-border);
+    font-size: 0.92rem;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__stats > div:nth-child(even) {
+    padding-left: 1rem;
+    padding-right: 0;
+    border-left: 1px dashed var(--color-border);
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__stats dt {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.82rem;
+    text-transform: none;
+    letter-spacing: 0;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__stats dt small {
+    font-size: 0.7rem;
+    color: var(--color-dim);
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__stats dd {
+    margin: 0;
+    font-weight: 700;
+    color: var(--color-text);
+    font-size: 0.92rem;
+    text-align: right;
+}
+
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__price {
+    grid-area: price;
+    position: relative;
+    padding: 1.5rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-bold);
+    border-radius: var(--radius-md);
+    margin-top: 0;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__price::before {
+    content: "[CENA]";
+    position: absolute;
+    top: -0.6em;
+    left: 1rem;
+    padding: 0 0.5rem;
+    background: var(--mainCanvasBackground, var(--color-bg, #141414));
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    color: var(--color-accent);
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__price .nf-machine__price-eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    margin: 0 0 0.25rem;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__price .nf-machine__price-value {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    margin: 0 0 1rem;
+    line-height: 1;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__price .nf-machine__price-lines {
+    list-style: none;
+    margin: 0 0 0.75rem;
+    padding: 0.75rem 0;
+    border-top: 1px dashed var(--color-border);
+    border-bottom: 1px dashed var(--color-border);
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__price .nf-machine__price-lines li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.2rem 0;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__price .nf-machine__price-lines li .nf-mono {
+    color: var(--color-text);
+    font-weight: 600;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__price .nf-machine__price-note {
+    font-size: 0.8rem;
+    margin: 0 0 1.25rem;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__price .nf-machine__actions .nf-btn {
+    font-size: 0.85rem;
+    padding: 0.75rem 1rem;
+    width: 100%;
+}
+
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__breakdown {
+    grid-area: break;
+    margin-top: 1.5rem;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__breakdown summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 0.75rem 0;
+    color: var(--color-muted);
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+    border-top: 1px dashed var(--color-border-bold);
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__breakdown summary::-webkit-details-marker { display: none; }
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__breakdown summary::before {
+    content: "+ ";
+    color: var(--color-accent);
+    font-weight: 700;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__breakdown[open] summary::before { content: "− "; }
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__breakdown summary:hover { color: var(--color-text); }
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__breakdown ul {
+    list-style: none;
+    padding: 0.5rem 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0 2rem;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__breakdown ul li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.4rem 0;
+    font-size: 0.85rem;
+    border-bottom: 1px dashed var(--color-border);
+    color: var(--color-text);
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__breakdown ul li.is-optional { color: var(--color-muted); }
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__breakdown ul li em {
+    font-style: italic;
+    font-size: 0.7rem;
+    color: var(--color-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-left: 0.25rem;
+}
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__breakdown ul li strong { font-weight: 700; white-space: nowrap; }
+.nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__breakdown .nf-machine__breakdown-note {
+    color: var(--color-muted);
+    font-size: 0.85rem;
+    margin: 1rem 0 0;
+}
+
+/* Tablet — drop sidebar into single column under heading, keep rail compact */
+@media (max-width: 1023px) {
+    .nf-section-stroje[data-page="1"] .nf-machine:not(.nf-machine--compact) {
+        grid-template-columns: 64px minmax(0, 1fr);
+        grid-template-areas:
+            "rail heading"
+            "rail hash"
+            "rail stats"
+            "rail price"
+            "break break";
+    }
+    .nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__index {
+        position: static;
+        font-size: 3rem;
+    }
+    .nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__badge {
+        position: static;
+        top: auto;
+        align-self: start;
+    }
+}
+@media (max-width: 640px) {
+    .nf-section-stroje[data-page="1"] .nf-machine:not(.nf-machine--compact) {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "rail"
+            "heading"
+            "hash"
+            "stats"
+            "price"
+            "break";
+        column-gap: 0;
+        row-gap: 1rem;
+    }
+    .nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__stats { grid-template-columns: 1fr; }
+    .nf-section-stroje[data-page="1"] .nf-machine > .nf-machine__stats > div:nth-child(even) {
+        border-left: none;
+        padding-left: 0;
+        padding-right: 0;
+    }
 }
 
 /* ===== Section 3 benefits — kept light, harmonized with new tokens ===== */
