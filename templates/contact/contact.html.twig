@@ -3,42 +3,55 @@
 {% block title %}Kontakt — New Factory{% endblock %}
 
 {% block body %}
-<header class="site-header">
-    <a href="{{ path('home') }}" class="site-header__brand">New Factory</a>
-    <nav class="site-header__nav">
-        <a href="{{ path('home') }}">Úvod</a>
-        <a href="{{ path('product_list') }}">Stroje</a>
-        <a href="{{ path('contact') }}" class="active">Kontakt</a>
+<div class="nf-shell">
+<header class="nf-header">
+    <a href="{{ path('home') }}" class="nf-header__brand">
+        <span class="nf-display">NEW</span><span class="nf-display nf-display--accent">FACTORY</span>
+    </a>
+    <nav class="nf-header__nav">
+        <a href="{{ path('home') }}"><span class="nf-mono">[01]</span> Úvod</a>
+        <a href="{{ path('product_list') }}"><span class="nf-mono">[02]</span> Stroje</a>
+        <a href="{{ path('contact') }}" class="is-active"><span class="nf-mono">[03]</span> Kontakt</a>
     </nav>
 </header>
 
-<main class="page-contact">
-    <section class="page-contact__intro">
-        <h1>Pošlete nám poptávku</h1>
-        <p>Ozveme se vám do 24 hodin. Vše konzultujeme bezplatně.</p>
-        <ul class="page-contact__channels">
-            <li><strong>E-mail:</strong> mining@new-factory.cz</li>
-            <li><strong>Telefon:</strong> +420 777 123 456</li>
+<main class="nf-page nf-page--contact">
+    <section class="nf-page__intro nf-page__intro--contact">
+        <p class="nf-eyebrow">[KONTAKT&nbsp;/&nbsp;NEZÁVAZNÁ&nbsp;POPTÁVKA]</p>
+        <h1 class="nf-display nf-page__title">Pošlete nám<br><span class="nf-display--accent">poptávku.</span></h1>
+        <p class="nf-page__lead-text">Ozveme se vám do <strong>24 hodin</strong>. Vše konzultujeme bezplatně — ROI kalkulace, výběr stroje, daňové konsekvence, tarif elektřiny.</p>
+        <ul class="nf-contact__channels">
+            <li><span class="nf-mono">@</span> <strong>E-mail:</strong> <a href="mailto:mining@new-factory.cz">mining@new-factory.cz</a></li>
+            <li><span class="nf-mono">☎</span> <strong>Telefon:</strong> <a href="tel:+420777123456">+420 777 123 456</a></li>
         </ul>
     </section>
 
     {% for label, messages in app.flashes(['success', 'error']) %}
         {% for message in messages %}
-            <div class="flash flash--{{ label }}">{{ message }}</div>
+            <div class="nf-flash nf-flash--{{ label }}">{{ message }}</div>
         {% endfor %}
     {% endfor %}
 
-    {{ form_start(form, { attr: { class: 'page-contact__form', novalidate: 'novalidate' } }) }}
-        {{ form_row(form.name) }}
-        {{ form_row(form.email) }}
-        {{ form_row(form.phone) }}
-        {{ form_row(form.product) }}
-        {{ form_row(form.message) }}
-        {# Honeypot — visually hidden but present in DOM. Bots fill all fields. #}
-        <div style="position: absolute; left: -9999px;" aria-hidden="true">
-            {{ form_row(form.website, { label: 'Leave this blank' }) }}
-        </div>
-        <button type="submit" class="btn btn--primary">Odeslat poptávku</button>
-    {{ form_end(form) }}
+    <section class="nf-contact__form-wrap">
+        {{ form_start(form, { attr: { class: 'nf-contact__form', novalidate: 'novalidate' } }) }}
+            <p class="nf-eyebrow nf-contact__form-eyebrow">[FORMULÁŘ]</p>
+            {{ form_row(form.name) }}
+            {{ form_row(form.email) }}
+            {{ form_row(form.phone) }}
+            {{ form_row(form.product) }}
+            {{ form_row(form.message) }}
+            {# Honeypot — visually hidden but present in DOM. Bots fill all fields. #}
+            <div style="position: absolute; left: -9999px;" aria-hidden="true">
+                {{ form_row(form.website, { label: 'Leave this blank' }) }}
+            </div>
+            <button type="submit" class="nf-btn nf-btn--primary nf-btn--xl">Odeslat poptávku →</button>
+        {{ form_end(form) }}
+    </section>
 </main>
+
+<footer class="nf-footer">
+    <p><span class="nf-mono">©&nbsp;{{ "now"|date("Y") }}</span> New Factory &nbsp;·&nbsp; <a href="mailto:mining@new-factory.cz">mining@new-factory.cz</a></p>
+    <p class="nf-footer__meta nf-mono">[BTC&nbsp;ASIC&nbsp;DISTRIBUTOR&nbsp;·&nbsp;CZ]</p>
+</footer>
+</div>
 {% endblock %}

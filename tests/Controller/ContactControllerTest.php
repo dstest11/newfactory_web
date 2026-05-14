@@ -15,7 +15,11 @@ final class ContactControllerTest extends WebTestCase
         self::assertResponseIsSuccessful();
 
         $body = (string) $client->getResponse()->getContent();
-        self::assertStringContainsString('Pošlete nám poptávku', $body);
+        // Headline phrase ("Pošlete nám poptávku") is split across markup for editorial layout
+        // — check the two halves separately + the action verb on the submit button.
+        self::assertStringContainsString('Pošlete nám', $body);
+        self::assertStringContainsString('poptávku', $body);
+        self::assertStringContainsString('Odeslat poptávku', $body);
         self::assertStringContainsString('mining@new-factory.cz', $body);
         // Honeypot field is present but visually hidden.
         self::assertStringContainsString('contact[website]', $body);

@@ -18,139 +18,228 @@
     {% endif %}
 {% endfor %}
 {% set allin = base + required %}
+{% set efficiency = (product.power_w / (product.hashrate|split(' ')[0]))|round(1) %}
+{% set product_index = { 'antminer-s21-pro': 1, 'antminer-s21-hyd': 2, 'whatsminer-m60s': 3 }[product.slug]|default(1) %}
 
-<header class="site-header">
-    <a href="{{ path('home') }}" class="site-header__brand">NEW FACTORY</a>
-    <nav class="site-header__nav">
-        <a href="{{ path('home') }}">Úvod</a>
-        <a href="{{ path('product_list') }}">Stroje</a>
-        <a href="{{ path('contact') }}">Kontakt</a>
+<div class="nf-shell">
+<header class="nf-header">
+    <a href="{{ path('home') }}" class="nf-header__brand">
+        <span class="nf-display">NEW</span><span class="nf-display nf-display--accent">FACTORY</span>
+    </a>
+    <nav class="nf-header__nav">
+        <a href="{{ path('home') }}"><span class="nf-mono">[01]</span> Úvod</a>
+        <a href="{{ path('product_list') }}"><span class="nf-mono">[02]</span> Stroje</a>
+        <a href="{{ path('contact') }}"><span class="nf-mono">[03]</span> Kontakt</a>
     </nav>
 </header>
 
-<main class="page-detail">
-    <p class="page-detail__breadcrumb"><a href="{{ path('product_list') }}">← Zpět na nabídku strojů</a></p>
+<main class="nf-page nf-page--detail">
+    <nav class="nf-breadcrumb"><a href="{{ path('product_list') }}">← <span class="nf-mono">[02]</span> Zpět na katalog strojů</a></nav>
 
-    <section class="page-detail__hero">
-        <div class="page-detail__hero-image">
-            {# Fixed portfolio image picked by product slug — Victor's stock images don't have product-specific shots. #}
-            {% set img_no = { 'antminer-s21-pro': 1, 'antminer-s21-hyd': 2, 'whatsminer-m60s': 3 }[product.slug]|default(1) %}
-            <img src="/victor/resources/images/portfolio/portfolio{{ img_no }}.jpg" alt="{{ product.name }}" />
-            <span class="page-detail__badge page-detail__badge--{{ product.delivery|lower|replace({' ': '-'}) }}">{{ product.delivery }}</span>
+    <!-- HERO: dossier-style with index + title spanning + portrait + metrics rail -->
+    <section class="nf-hero">
+        <div class="nf-hero__caption">
+            <p class="nf-eyebrow">[STROJ / {{ '%02d'|format(product_index) }} / 03]</p>
+            <p class="nf-hero__kicker">
+                <span class="nf-mono">{{ product.manufacturer|upper }}</span>
+                &nbsp;·&nbsp;
+                <span class="nf-mono">{{ product.algorithm }}</span>
+                &nbsp;·&nbsp;
+                <span class="nf-mono">{{ product.currency_type|upper }}</span>
+            </p>
         </div>
-        <div class="page-detail__hero-info">
-            <h1>{{ product.name }}</h1>
-            <p class="page-detail__subtitle">{{ product.currency_type }} · {{ product.algorithm }} · {{ product.manufacturer }}</p>
+        <h1 class="nf-display nf-hero__title">{{ product.name }}</h1>
 
-            <div class="page-detail__metrics">
-                <div class="page-detail__metric">
-                    <strong>48 hodin</strong>
-                    <span>Datum zapojení</span>
-                </div>
-                <div class="page-detail__metric">
-                    <strong>{{ product.hashrate }}</strong>
-                    <span>Hashrate</span>
-                </div>
-                <div class="page-detail__metric">
-                    <strong>{{ product.annual_btc }}</strong>
-                    <span>Odhadovaný hrubý příjem ⓘ</span>
-                </div>
-            </div>
-
-            <a class="button button--primary button--lg page-detail__cta" href="{{ path('contact', { product: product.slug }) }}">
-                Mám zájem — pošlete cenovou nabídku
-            </a>
+        <div class="nf-hero__portrait">
+            <img src="/victor/resources/images/portfolio/portfolio{{ product_index }}.jpg" alt="{{ product.name }}" />
+            <span class="nf-hero__badge nf-hero__badge--{{ product.delivery|lower|replace({' ': '-'}) }}">{{ product.delivery }}</span>
+            <span class="nf-hero__portrait-meta nf-mono">[OBR&nbsp;·&nbsp;{{ '%02d'|format(product_index) }}/03]</span>
         </div>
+
+        <p class="nf-hero__pitch">{{ product.short_description }}</p>
+
+        <div class="nf-metrics">
+            <article class="nf-metric nf-metric--xl">
+                <span class="nf-metric__label">HASHRATE</span>
+                <strong class="nf-display nf-metric__value">{{ product.hashrate|split(' ')[0] }}</strong>
+                <span class="nf-metric__unit">{{ product.hashrate|split(' ')[1]|default('TH/s') }}</span>
+            </article>
+            <article class="nf-metric">
+                <span class="nf-metric__label">Datum zapojení</span>
+                <strong class="nf-display nf-metric__value">48</strong>
+                <span class="nf-metric__unit">hodin</span>
+            </article>
+            <article class="nf-metric">
+                <span class="nf-metric__label">Roční výnos <sup title="Odhad podle aktuální obtížnosti sítě a kurzu BTC; výsledná hodnota není garantovaná.">ⓘ</sup></span>
+                <strong class="nf-display nf-metric__value">{{ product.annual_btc|replace({'≈ ': ''})|split(' ')[0] }}</strong>
+                <span class="nf-metric__unit">BTC / rok</span>
+            </article>
+            <article class="nf-metric">
+                <span class="nf-metric__label">Účinnost</span>
+                <strong class="nf-display nf-metric__value">{{ efficiency }}</strong>
+                <span class="nf-metric__unit">J / TH</span>
+            </article>
+            <article class="nf-metric">
+                <span class="nf-metric__label">Příkon</span>
+                <strong class="nf-display nf-metric__value">{{ (product.power_w / 1000)|number_format(2, ',', ' ') }}</strong>
+                <span class="nf-metric__unit">kW</span>
+            </article>
+        </div>
+
+        <a class="nf-btn nf-btn--primary nf-btn--xl nf-hero__cta" href="{{ path('contact', { product: product.slug }) }}">
+            Mám zájem — pošlete cenovou nabídku →
+        </a>
     </section>
 
-    <section class="page-detail__pricing">
-        <h2>Cenová kalkulace</h2>
-        <p class="page-detail__pricing-lead">Plně transparentní. Žádné skryté poplatky. ALL-IN cena obsahuje povinné položky; volitelné si určujete při poptávce.</p>
+    <!-- PRICE LEDGER: asymmetric, left column copy + right column running tape -->
+    <section class="nf-ledger">
+        <div class="nf-ledger__intro">
+            <p class="nf-eyebrow">[CENOVÁ&nbsp;KALKULACE]</p>
+            <h2 class="nf-display">ALL-IN<br><span class="nf-display--accent">{{ allin|number_format(0, ',', ' ') }}&nbsp;Kč</span></h2>
+            <p class="nf-ledger__lead">Plně transparentní rozpočet. <strong>Žádné skryté poplatky.</strong> ALL-IN obsahuje pouze povinné položky; volitelné si určujete při poptávce. Cena za elektřinu je fakturována odděleně podle reálné spotřeby.</p>
+            <dl class="nf-ledger__totals">
+                <div><dt>Povinné položky</dt><dd class="nf-mono nf-ledger__totals-required">{{ allin|number_format(0, ',', ' ') }} Kč</dd></div>
+                <div><dt>S volitelnými službami</dt><dd class="nf-mono">{{ (allin + optional_total)|number_format(0, ',', ' ') }} Kč</dd></div>
+                <div><dt>Elektřina (provoz / rok)</dt><dd class="nf-mono">{{ product.electricity_yearly_czk|number_format(0, ',', ' ') }} Kč</dd></div>
+            </dl>
+        </div>
 
-        <table class="pricing-table">
-            <thead>
-                <tr><th>Položka</th><th>Typ</th><th class="pricing-table__price">Cena</th></tr>
-            </thead>
-            <tbody>
-                <tr><td><strong>Cena stroje</strong></td><td>—</td><td class="pricing-table__price">{{ product.machine_price_czk|number_format(0, ',', ' ') }} Kč</td></tr>
-                <tr><td><strong>Příslušenství (kabely, vzduchové filtry)</strong></td><td>—</td><td class="pricing-table__price">{{ product.accessories_czk|number_format(0, ',', ' ') }} Kč</td></tr>
+        <div class="nf-ledger__sheet">
+            <p class="nf-ledger__sheet-head">
+                <span class="nf-mono">POL.</span>
+                <span class="nf-mono">POPIS</span>
+                <span class="nf-mono">TYP</span>
+                <span class="nf-mono nf-ledger__sheet-head-price">CENA</span>
+            </p>
+            <ol class="nf-ledger__lines">
+                <li class="is-required">
+                    <span class="nf-mono nf-ledger__lines-num">001</span>
+                    <span class="nf-ledger__lines-name">Cena stroje</span>
+                    <span class="nf-mono nf-ledger__lines-type">stroj</span>
+                    <span class="nf-mono nf-ledger__lines-price">{{ product.machine_price_czk|number_format(0, ',', ' ') }} Kč</span>
+                </li>
+                <li class="is-required">
+                    <span class="nf-mono nf-ledger__lines-num">002</span>
+                    <span class="nf-ledger__lines-name">Příslušenství (kabely, vzduchové filtry)</span>
+                    <span class="nf-mono nf-ledger__lines-type">stroj</span>
+                    <span class="nf-mono nf-ledger__lines-price">{{ product.accessories_czk|number_format(0, ',', ' ') }} Kč</span>
+                </li>
                 {% for line in product.service_lines %}
-                    <tr class="{{ line.is_optional ? 'is-optional' : 'is-required' }}">
-                        <td>{{ line.name }}</td>
-                        <td>{{ line.is_optional ? 'volitelné' : 'povinné' }}</td>
-                        <td class="pricing-table__price">{{ line.price_czk|number_format(0, ',', ' ') }} Kč</td>
-                    </tr>
+                    <li class="{{ line.is_optional ? 'is-optional' : 'is-required' }}">
+                        <span class="nf-mono nf-ledger__lines-num">{{ '%03d'|format(loop.index + 2) }}</span>
+                        <span class="nf-ledger__lines-name">{{ line.is_optional ? '◇' : '◆' }} {{ line.name }}</span>
+                        <span class="nf-mono nf-ledger__lines-type">{{ line.is_optional ? 'volitelné' : 'povinné' }}</span>
+                        <span class="nf-mono nf-ledger__lines-price">{{ line.price_czk|number_format(0, ',', ' ') }} Kč</span>
+                    </li>
                 {% endfor %}
-            </tbody>
-            <tfoot>
-                <tr class="pricing-table__total">
-                    <td colspan="2"><strong>ALL-IN cena (jen povinné)</strong></td>
-                    <td class="pricing-table__price"><strong>{{ allin|number_format(0, ',', ' ') }} Kč</strong></td>
-                </tr>
-                <tr class="pricing-table__optional">
-                    <td colspan="2">S volitelnými službami (hosting, monitoring, údržba na 12 měs., garance uptime)</td>
-                    <td class="pricing-table__price">{{ (allin + optional_total)|number_format(0, ',', ' ') }} Kč</td>
-                </tr>
-                <tr class="pricing-table__energy">
-                    <td colspan="2">+ elektřina @ 5 Kč/kWh (24/7 provoz)</td>
-                    <td class="pricing-table__price">{{ product.electricity_yearly_czk|number_format(0, ',', ' ') }} Kč / rok</td>
-                </tr>
-            </tfoot>
-        </table>
+            </ol>
+            <p class="nf-ledger__sheet-totals">
+                <span class="nf-mono nf-ledger__sheet-totals-row">
+                    <span>= ALL-IN (povinné)</span>
+                    <strong class="nf-ledger__sheet-totals-allin">{{ allin|number_format(0, ',', ' ') }} Kč</strong>
+                </span>
+                <span class="nf-mono nf-ledger__sheet-totals-row">
+                    <span>+ Volitelné služby</span>
+                    <span>{{ optional_total|number_format(0, ',', ' ') }} Kč</span>
+                </span>
+                <span class="nf-mono nf-ledger__sheet-totals-row nf-ledger__sheet-totals-energy">
+                    <span>+ Elektřina @ 5 Kč/kWh</span>
+                    <span>{{ product.electricity_yearly_czk|number_format(0, ',', ' ') }} Kč / rok</span>
+                </span>
+            </p>
+        </div>
     </section>
 
-    <section class="page-detail__specs">
-        <h2>Technické parametry</h2>
-        <table class="specs-table">
-            <tr><th>Výrobce</th><td>{{ product.manufacturer }}</td></tr>
-            <tr><th>Představení</th><td>{{ product.release_date }}</td></tr>
-            <tr><th>Hashrate</th><td>{{ product.hashrate }}</td></tr>
-            <tr><th>Algoritmus</th><td>{{ product.algorithm }}</td></tr>
-            <tr><th>Příkon</th><td>{{ product.power_w|number_format(0, ',', ' ') }} W</td></tr>
-            <tr><th>Energetická efektivita</th><td>{{ (product.power_w / (product.hashrate|split(' ')[0]))|round(1) }} J/TH</td></tr>
-            <tr><th>Rozměry</th><td>{{ product.dimensions }}</td></tr>
-            <tr><th>Váha</th><td>{{ product.weight_kg }} kg</td></tr>
-            <tr><th>Provozní teplota</th><td>0 – 40 °C</td></tr>
-            <tr><th>Rozhraní</th><td>Ethernet (RJ45)</td></tr>
-        </table>
+    <!-- SPECS: off-grid mosaic blocks -->
+    <section class="nf-specs">
+        <header class="nf-specs__head">
+            <p class="nf-eyebrow">[TECHNICKÉ&nbsp;PARAMETRY]</p>
+            <h2 class="nf-display">Pod kapotou.</h2>
+        </header>
+        <dl class="nf-specs__grid">
+            <div class="nf-specs__cell"><dt>Výrobce</dt><dd>{{ product.manufacturer }}</dd></div>
+            <div class="nf-specs__cell"><dt>Představení</dt><dd>{{ product.release_date }}</dd></div>
+            <div class="nf-specs__cell nf-specs__cell--big"><dt>Hashrate</dt><dd class="nf-mono">{{ product.hashrate }}</dd></div>
+            <div class="nf-specs__cell"><dt>Algoritmus</dt><dd class="nf-mono">{{ product.algorithm }}</dd></div>
+            <div class="nf-specs__cell"><dt>Příkon</dt><dd class="nf-mono">{{ product.power_w|number_format(0, ',', ' ') }} W</dd></div>
+            <div class="nf-specs__cell nf-specs__cell--big"><dt>Energetická efektivita</dt><dd class="nf-mono">{{ efficiency }} J / TH</dd></div>
+            <div class="nf-specs__cell"><dt>Rozměry</dt><dd class="nf-mono">{{ product.dimensions }}</dd></div>
+            <div class="nf-specs__cell"><dt>Váha</dt><dd class="nf-mono">{{ product.weight_kg }} kg</dd></div>
+            <div class="nf-specs__cell"><dt>Provozní teplota</dt><dd class="nf-mono">0 – 40 °C</dd></div>
+            <div class="nf-specs__cell"><dt>Rozhraní</dt><dd class="nf-mono">Ethernet (RJ45)</dd></div>
+        </dl>
     </section>
 
-    <section class="page-detail__description">
-        <h2>#Co byste měli vědět</h2>
-        <p>{{ product.short_description }}</p>
-        <ul>
-            <li><strong>Životnost stroje:</strong> 3–5 let při doporučovaném provozu a údržbě podle výrobce.</li>
-            <li><strong>Vlastníte stroj:</strong> Po odeslání ALL-IN platby je stroj váš. Nemáme nárok na podíl ze zisku ani provizi z vytěženého BTC.</li>
-            <li><strong>Vyplácení:</strong> BTC se těží na váš pool účet — výplaty řešíte přímo s pool providerem. Doporučujeme F2Pool, Antpool nebo Foundry USA.</li>
-            <li><strong>Servis:</strong> Po skončení záruky výrobce přebíráme bezplatný doživotní servis. Diagnostika + drobné opravy bez doplatků.</li>
-            <li><strong>SLA uptime:</strong> 98 % garance v rámci jednoho fakturačního měsíce. Delší výpadek kompenzován výnosem.</li>
-        </ul>
+    <!-- DESCRIPTION: editorial spread -->
+    <section class="nf-essay">
+        <p class="nf-eyebrow">[CO&nbsp;BYSTE&nbsp;MĚLI&nbsp;VĚDĚT]</p>
+        <h2 class="nf-display">Stroj patří vám.<br><span class="nf-display--accent">Vytěžený BTC&nbsp;taky.</span></h2>
+        <p class="nf-essay__lead">{{ product.short_description }}</p>
+        <dl class="nf-essay__list">
+            <div>
+                <dt><span class="nf-mono">[01]</span> Životnost stroje</dt>
+                <dd>3–5 let při doporučovaném provozu a údržbě podle výrobce. Pravidelný servis spolehlivě prodlužuje životnost o další 1–2 roky.</dd>
+            </div>
+            <div>
+                <dt><span class="nf-mono">[02]</span> Vlastníte stroj</dt>
+                <dd>Po odeslání ALL-IN platby je stroj váš. Nemáme nárok na podíl ze zisku ani provizi z vytěženého BTC. Cash flow do vaší kapsy, ne do naší.</dd>
+            </div>
+            <div>
+                <dt><span class="nf-mono">[03]</span> Vyplácení</dt>
+                <dd>BTC se těží na váš pool účet — výplaty řešíte přímo s pool providerem. Doporučujeme F2Pool, Antpool nebo Foundry USA.</dd>
+            </div>
+            <div>
+                <dt><span class="nf-mono">[04]</span> Servis</dt>
+                <dd>Po skončení záruky výrobce přebíráme bezplatný doživotní servis. Diagnostika i drobné opravy bez doplatků.</dd>
+            </div>
+            <div>
+                <dt><span class="nf-mono">[05]</span> SLA uptime</dt>
+                <dd>98 % garance v rámci jednoho fakturačního měsíce. Delší výpadek kompenzován výnosem podle aktuální obtížnosti sítě a kurzu BTC.</dd>
+            </div>
+        </dl>
     </section>
 
-    <section class="page-detail__faq">
-        <h2>Časté otázky k tomuto stroji</h2>
-        <details>
-            <summary>Kdy reálně začne stroj těžit po objednávce?</summary>
-            <p>Při stavu skladem do 48 hodin od přijetí platby. Při dovozu z výroby 14–21 dní (zahrnuto v Standard delivery). Aktivace v hosting datacentru je vždy stejný den, kdy stroj dorazí.</p>
-        </details>
-        <details>
-            <summary>Co se stane, pokud kurz BTC propadne a mining přestane být ziskový?</summary>
-            <p>Provoz lze kdykoliv pozastavit. Během pauzy se neúčtuje hosting ani elektřina. Stroj zůstává ve vlastnictví a fyzicky v datacentru. Při návratu výnosnosti znovu spustíme bez setupu.</p>
-        </details>
-        <details>
-            <summary>Můžu si stroj odvézt domů?</summary>
-            <p>Ano, ALL-IN cena zahrnuje dopravu k vám. V tom případě odpadají měsíční hosting + monitoring poplatky. Doporučujeme však profesionální hosting — domácí provoz znamená hluk 70+ dB, vysokou teplotu a 3 kW konstantního příkonu (ASIC = ne pro byt).</p>
-        </details>
-        <details>
-            <summary>Jaké jsou platební podmínky?</summary>
-            <p>50 % ALL-IN při objednávce, 50 % při fyzickém dovozu stroje do CZ. Platby bankovním převodem v CZK nebo přímo BTC podle aktuálního kurzu.</p>
-        </details>
+    <!-- FAQ -->
+    <section class="nf-faq">
+        <header class="nf-faq__head">
+            <p class="nf-eyebrow">[FAQ&nbsp;/&nbsp;K&nbsp;TOMUTO&nbsp;STROJI]</p>
+            <h2 class="nf-display">Než se zeptáte<br><span class="nf-display--accent">— a&nbsp;možná jsme&nbsp;odpověděli.</span></h2>
+        </header>
+        <div class="nf-faq__list">
+            <details>
+                <summary><span class="nf-mono">[Q1]</span> Kdy reálně začne stroj těžit po objednávce?</summary>
+                <p>Při stavu skladem do 48 hodin od přijetí platby. Při dovozu z výroby 14–21 dní (zahrnuto v Standard delivery). Aktivace v hosting datacentru je vždy stejný den, kdy stroj dorazí.</p>
+            </details>
+            <details>
+                <summary><span class="nf-mono">[Q2]</span> Co se stane, pokud kurz BTC propadne a mining přestane být ziskový?</summary>
+                <p>Provoz lze kdykoliv pozastavit. Během pauzy se neúčtuje hosting ani elektřina. Stroj zůstává ve vlastnictví a fyzicky v datacentru. Při návratu výnosnosti znovu spustíme bez setupu.</p>
+            </details>
+            <details>
+                <summary><span class="nf-mono">[Q3]</span> Můžu si stroj odvézt domů?</summary>
+                <p>Ano, ALL-IN cena zahrnuje dopravu k vám. V tom případě odpadají měsíční hosting + monitoring poplatky. Doporučujeme však profesionální hosting — domácí provoz znamená hluk 70+ dB, vysokou teplotu a 3 kW konstantního příkonu (ASIC = ne pro byt).</p>
+            </details>
+            <details>
+                <summary><span class="nf-mono">[Q4]</span> Jaké jsou platební podmínky?</summary>
+                <p>50 % ALL-IN při objednávce, 50 % při fyzickém dovozu stroje do ČR. Platby bankovním převodem v CZK nebo přímo BTC podle aktuálního kurzu.</p>
+            </details>
+        </div>
     </section>
 
-    <p class="page-detail__disclaimer"><small>Odhadovaný hrubý příjem v BTC vychází z aktuální obtížnosti sítě a kurzu k dnešnímu datu. Skutečný výnos je závislý na vývoji sítě, kurzu BTC a uptime. Údaje nejsou garantovaným výnosem.</small></p>
+    <section class="nf-callout">
+        <div class="nf-callout__copy">
+            <p class="nf-eyebrow">[NEZÁVAZNÁ&nbsp;POPTÁVKA]</p>
+            <h2 class="nf-display">Ozveme se <span class="nf-display--accent">do 24 hodin.</span></h2>
+            <p>Pošleme kalkulaci se všemi volitelnými službami, ukážeme datum nasazení do datacentra a probereme tarif za elektřinu.</p>
+        </div>
+        <a class="nf-btn nf-btn--primary nf-btn--xl" href="{{ path('contact', { product: product.slug }) }}">Poslat poptávku →</a>
+    </section>
+
+    <p class="nf-disclaimer"><small>Odhadovaný hrubý příjem v BTC vychází z aktuální obtížnosti sítě a kurzu k dnešnímu datu. Skutečný výnos je závislý na vývoji sítě, kurzu BTC a uptime. Údaje nejsou garantovaným výnosem.</small></p>
 </main>
 
-<footer class="site-footer">
-    <p>© {{ "now"|date("Y") }} New Factory · <a href="mailto:mining@new-factory.cz">mining@new-factory.cz</a></p>
+<footer class="nf-footer">
+    <p><span class="nf-mono">©&nbsp;{{ "now"|date("Y") }}</span> New Factory &nbsp;·&nbsp; <a href="mailto:mining@new-factory.cz">mining@new-factory.cz</a></p>
+    <p class="nf-footer__meta nf-mono">[BTC&nbsp;ASIC&nbsp;DISTRIBUTOR&nbsp;·&nbsp;CZ]</p>
 </footer>
+</div>
 {% endblock %}
