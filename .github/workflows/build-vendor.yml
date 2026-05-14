@@ -136,13 +136,20 @@ jobs:
             --no-progress
 
       # Symfony asset compile (skipped for non-Symfony apps — the asset
-      # files just won't exist and the tar pattern below will skip them)
+      # files just won't exist and the tar pattern below will skip them).
+      # Env-var defaults: asset-map:compile boots the full kernel which
+      # loads config/packages/sentry.yaml referencing %env(NEWFACTORY_SENTRY_DSN)%
+      # — empty string makes the SDK a no-op during CI build (real DSN
+      # comes from GH Secrets at deploy time via /srv/www/.env override).
       - name: Symfony asset:install + asset-map:compile (if applicable)
+        env:
+          APP_ENV: prod
+          NEWFACTORY_SENTRY_DSN: ""
         run: |
           if [[ -f bin/console ]]; then
-            APP_ENV=prod php -d memory_limit=512M bin/console assets:install public --no-interaction || true
-            APP_ENV=prod php -d memory_limit=512M bin/console asset-map:compile --no-interaction || true
-            APP_ENV=prod php -d memory_limit=512M bin/console importmap:install --no-interaction || true
+            php -d memory_limit=512M bin/console assets:install public --no-interaction || true
+            php -d memory_limit=512M bin/console asset-map:compile --no-interaction || true
+            php -d memory_limit=512M bin/console importmap:install --no-interaction || true
           else
             echo "No bin/console — skipping Symfony asset compile"
           fi
