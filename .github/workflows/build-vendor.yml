@@ -76,6 +76,74 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # =========================================================
+      # Spaces-side artifact cache (content-hash keyed).
+      # Source: infra repo PR #197.
+      - name: Compute artifact cache key
+        id: cache_key
+        run: |
+          set -euo pipefail
+          FILES=()
+          [[ -f composer.lock ]]      && FILES+=(composer.lock)
+          [[ -f composer.json ]]      && FILES+=(composer.json)
+          [[ -f importmap.php ]]      && FILES+=(importmap.php)
+          [[ -f package-lock.json ]]  && FILES+=(package-lock.json)
+          [[ -f package.json ]]       && FILES+=(package.json)
+
+          ASSET_LIST=""
+          for dir in assets resources; do
+            if [[ -d "$dir" ]]; then
+              ASSET_LIST="${ASSET_LIST}$(find "$dir" -type f -print0 | sort -z | xargs -0 sha256sum)"$'\n'
+            fi
+          done
+
+          if [[ ${#FILES[@]} -eq 0 && -z "$ASSET_LIST" ]]; then
+            echo "key=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          HASH=$( { [[ ${#FILES[@]} -gt 0 ]] && cat "${FILES[@]}"; echo "$ASSET_LIST"; } | sha256sum | cut -c1-16 )
+          echo "key=$HASH" >> "$GITHUB_OUTPUT"
+
+      - name: Check Spaces for cached artifact
+        id: cache_check
+        if: steps.cache_key.outputs.key != ''
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.SPACES_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_KEY }}
+          AWS_DEFAULT_REGION:    fra1
+          CACHE_KEY:             ${{ steps.cache_key.outputs.key }}
+        run: |
+          set -euo pipefail
+          ENDPOINT="https://fra1.digitaloceanspaces.com"
+          BUCKET="dosmart-fra1"
+          CACHE_PATH="deploy-artifacts/newfactory_web/cache/vendor-cache-${CACHE_KEY}.tar.gz"
+
+          if aws --endpoint-url "$ENDPOINT" s3api head-object --bucket "$BUCKET" --key "$CACHE_PATH" >/dev/null 2>&1; then
+            echo "hit=true" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Vendor cache HIT::skipping composer install + asset compile (key=${CACHE_KEY})"
+          else
+            echo "hit=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Cache HIT — copy cached artifact to SHA-keyed path
+        if: steps.cache_check.outputs.hit == 'true'
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.SPACES_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_KEY }}
+          AWS_DEFAULT_REGION:    fra1
+        run: |
+          set -euo pipefail
+          ENDPOINT="https://fra1.digitaloceanspaces.com"
+          BUCKET="dosmart-fra1"
+          CACHE_KEY="${{ steps.cache_key.outputs.key }}"
+          ARTIFACT="vendor-${{ github.sha }}.tar.gz"
+          SRC="deploy-artifacts/newfactory_web/cache/vendor-cache-${CACHE_KEY}.tar.gz"
+          DST="deploy-artifacts/newfactory_web/${ARTIFACT}"
+
+          aws --endpoint-url "$ENDPOINT" s3 cp "s3://${BUCKET}/${SRC}"        "s3://${BUCKET}/${DST}"
+          aws --endpoint-url "$ENDPOINT" s3 cp "s3://${BUCKET}/${SRC}.sha256" "s3://${BUCKET}/${DST}.sha256"
+
       # Setup-php compiles + downloads PHP extensions on every cold
       # cache miss (~30-60s on a fresh runner). cache-extensions stores
       # the compiled .so files keyed by (PHP version + extension list +
@@ -83,6 +151,7 @@ jobs:
       # restore instead of recompile. Quality-of-life from
       # /acc:ci-pipeline-knowledge audit.
       - name: Setup PHP extension cache key
+        if: steps.cache_check.outputs.hit != 'true'
         id: extcache
         uses: shivammathur/cache-extensions@v1
         with:
@@ -91,6 +160,7 @@ jobs:
           extensions: ${{ inputs.php_extensions || 'pdo, pdo_mysql, pdo_pgsql, pdo_sqlite, mbstring, xml, intl, gd, zip, gmp, bcmath' }}
 
       - name: Restore cached PHP extensions
+        if: steps.cache_check.outputs.hit != 'true'
         uses: actions/cache@v4
         with:
           path: ${{ steps.extcache.outputs.dir }}
@@ -98,6 +168,7 @@ jobs:
           restore-keys: ${{ steps.extcache.outputs.key }}
 
       - name: Setup PHP ${{ inputs.php_version || '8.3' }}
+        if: steps.cache_check.outputs.hit != 'true'
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ inputs.php_version || '8.3' }}
@@ -110,6 +181,7 @@ jobs:
           ini-values: memory_limit=512M
 
       - name: Restore composer cache
+        if: steps.cache_check.outputs.hit != 'true'
         uses: actions/cache@v4
         with:
           path: ~/.composer/cache
@@ -118,6 +190,7 @@ jobs:
             composer-${{ runner.os }}-
 
       - name: Composer install (no-dev, optimized)
+        if: steps.cache_check.outputs.hit != 'true'
         env:
           # APP_ENV=prod prevents symfony/flex auto-scripts (which boot the
           # kernel to apply recipes) from running in dev env, which would
@@ -142,6 +215,7 @@ jobs:
       # — empty string makes the SDK a no-op during CI build (real DSN
       # comes from GH Secrets at deploy time via /srv/www/.env override).
       - name: Symfony asset:install + asset-map:compile (if applicable)
+        if: steps.cache_check.outputs.hit != 'true'
         env:
           APP_ENV: prod
           NEWFACTORY_SENTRY_DSN: ""
@@ -159,6 +233,7 @@ jobs:
           fi
 
       - name: Tar vendor + public assets
+        if: steps.cache_check.outputs.hit != 'true'
         id: tar
         run: |
           ARTIFACT="vendor-${{ github.sha }}.tar.gz"
@@ -184,6 +259,7 @@ jobs:
           ls -la "$ARTIFACT" "${ARTIFACT}.sha256"
 
       - name: Upload to DO Spaces
+        if: steps.cache_check.outputs.hit != 'true'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_KEY }}
@@ -204,7 +280,26 @@ jobs:
 
           echo "::notice title=Artifact uploaded::s3://${BUCKET}/${PREFIX}/${ARTIFACT} (${{ steps.tar.outputs.size }})"
 
+      - name: Cache MISS — save artifact under content-hash key
+        if: steps.cache_check.outputs.hit != 'true' && steps.cache_key.outputs.key != ''
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.SPACES_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_KEY }}
+          AWS_DEFAULT_REGION:    fra1
+        run: |
+          set -euo pipefail
+          ENDPOINT="https://fra1.digitaloceanspaces.com"
+          BUCKET="dosmart-fra1"
+          CACHE_KEY="${{ steps.cache_key.outputs.key }}"
+          SHA_KEY="deploy-artifacts/newfactory_web/vendor-${{ github.sha }}.tar.gz"
+          CACHE_PATH="deploy-artifacts/newfactory_web/cache/vendor-cache-${CACHE_KEY}.tar.gz"
+
+          aws --endpoint-url "$ENDPOINT" s3 cp "s3://${BUCKET}/${SHA_KEY}"        "s3://${BUCKET}/${CACHE_PATH}"
+          aws --endpoint-url "$ENDPOINT" s3 cp "s3://${BUCKET}/${SHA_KEY}.sha256" "s3://${BUCKET}/${CACHE_PATH}.sha256"
+          echo "::notice title=Cache populated::future builds with key=${CACHE_KEY} will skip composer install"
+
       - name: Summary
+        if: steps.cache_check.outputs.hit != 'true'
         run: |
           echo "## Vendor artifact built" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
