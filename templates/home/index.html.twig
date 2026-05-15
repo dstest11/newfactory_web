@@ -215,13 +215,18 @@
                     {% set allin = base + required %}
                     {% set efficiency = (product.power_w / (product.hashrate|split(' ')[0]))|round(1) %}
 
+                    {# documentId is the Strapi v5 stable identifier — inline-edit overlay
+                       addresses each item via data-cms-field="newfactory-products:<documentId>:<path>".
+                       Only emit data-cms-field when documentId is present (fallback catalog has no IDs). #}
+                    {% set cms_id = product.documentId|default('') %}
+                    {% set cms_target = cms_id ? 'newfactory-products:' ~ cms_id : null %}
                     <li class="nf-machine" id="machine-{{ product.slug }}" data-product-slug="{{ product.slug }}">
                         <span class="nf-machine__index">{{ '%02d'|format(loop.index) }}</span>
                         <span class="nf-machine__badge nf-machine__badge--{{ product.delivery|lower|replace({' ': '-'}) }}">{{ product.delivery }}</span>
 
                         <div class="nf-machine__heading">
-                            <p class="nf-machine__kicker"><span class="nf-mono">{{ product.manufacturer|upper }}</span> · <span class="nf-mono">{{ product.algorithm }}</span> · <span class="nf-mono">{{ product.currency_type|upper }}</span></p>
-                            <h2 class="nf-display nf-machine__name">{{ product.name }}</h2>
+                            <p class="nf-machine__kicker"><span class="nf-mono"{% if cms_target %} data-cms-field="{{ cms_target }}:manufacturer"{% endif %}>{{ product.manufacturer|upper }}</span> · <span class="nf-mono"{% if cms_target %} data-cms-field="{{ cms_target }}:algorithm"{% endif %}>{{ product.algorithm }}</span> · <span class="nf-mono"{% if cms_target %} data-cms-field="{{ cms_target }}:currency_type"{% endif %}>{{ product.currency_type|upper }}</span></p>
+                            <h2 class="nf-display nf-machine__name"{% if cms_target %} data-cms-field="{{ cms_target }}:name"{% endif %}>{{ product.name }}</h2>
                         </div>
 
                         <div class="nf-machine__hash">
@@ -233,7 +238,7 @@
                         <dl class="nf-machine__stats">
                             <div><dt>Příkon</dt><dd class="nf-mono">{{ product.power_w|number_format(0, ',', ' ') }} W</dd></div>
                             <div><dt>Účinnost</dt><dd class="nf-mono">{{ efficiency }} J/TH</dd></div>
-                            <div><dt>Roční výnos<sup title="Odhad podle aktuální obtížnosti sítě a kurzu BTC; výsledná hodnota není garantovaná.">ⓘ</sup></dt><dd class="nf-mono">{{ product.annual_btc }}</dd></div>
+                            <div><dt>Roční výnos<sup title="Odhad podle aktuální obtížnosti sítě a kurzu BTC; výsledná hodnota není garantovaná.">ⓘ</sup></dt><dd class="nf-mono"{% if cms_target %} data-cms-field="{{ cms_target }}:annual_btc"{% endif %}>{{ product.annual_btc }}</dd></div>
                             <div><dt>El. @ 5&nbsp;Kč/kWh</dt><dd class="nf-mono">{{ product.electricity_yearly_czk|number_format(0, ',', ' ') }} Kč / rok</dd></div>
                         </dl>
 
