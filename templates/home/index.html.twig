@@ -294,6 +294,9 @@
                     {% set allin = base + required %}
                     {% set efficiency = (product.power_w / (product.hashrate|split(' ')[0]))|round(1) %}
 
+                    {# Same inline-edit pattern as Section 1 cards; see ProductRepository for documentId. #}
+                    {% set cms_id = product.documentId|default('') %}
+                    {% set cms_target = cms_id ? 'newfactory-products:' ~ cms_id : null %}
                     <li class="nf-machine nf-machine--compact" id="service-machine-{{ product.slug }}" data-product-slug="{{ product.slug }}">
                         <header class="nf-machine__compact-head">
                             <span class="nf-machine__index">{{ '%02d'|format(loop.index) }}</span>
@@ -301,8 +304,8 @@
                         </header>
 
                         <div class="nf-machine__heading">
-                            <p class="nf-machine__kicker"><span class="nf-mono">{{ product.manufacturer|upper }}</span> · <span class="nf-mono">{{ product.algorithm }}</span></p>
-                            <h2 class="nf-display nf-machine__name">{{ product.name }}</h2>
+                            <p class="nf-machine__kicker"><span class="nf-mono"{% if cms_target %} data-cms-field="{{ cms_target }}:manufacturer"{% endif %}>{{ product.manufacturer|upper }}</span> · <span class="nf-mono"{% if cms_target %} data-cms-field="{{ cms_target }}:algorithm"{% endif %}>{{ product.algorithm }}</span></p>
+                            <h2 class="nf-display nf-machine__name"{% if cms_target %} data-cms-field="{{ cms_target }}:name"{% endif %}>{{ product.name }}</h2>
                         </div>
 
                         <div class="nf-machine__hash">
