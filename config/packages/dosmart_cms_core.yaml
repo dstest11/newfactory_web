@@ -27,6 +27,19 @@ dosmart_cms_core:
             - hero_subtitle
             - intro_title
             - intro_body
+        # Strapi v5 REST slug for the products collection is the PLURAL
+        # form (`newfactory-products`). The inline-edit overlay sends that
+        # exact slug in data-cms-field. The singular `newfactory-product`
+        # entry below is kept only as legacy compat — new templates emit
+        # the plural.
+        newfactory-products:
+            - name
+            - manufacturer
+            - algorithm
+            - currency_type
+            - annual_btc
+            - short_description
+            - long_description
         newfactory-product:
             - short_description
             - long_description

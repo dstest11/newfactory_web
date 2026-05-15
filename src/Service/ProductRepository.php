@@ -112,8 +112,16 @@ final class ProductRepository
             ];
         }
 
+        // documentId is the Strapi v5 stable identifier the inline-edit
+        // overlay uses to address a specific item in the collection
+        // (data-cms-field="newfactory-products:<documentId>:<path>").
+        // Fall back to the legacy numeric id only as a last resort —
+        // documents API expects the documentId on PUT.
+        $documentId = (string) ($attrs['documentId'] ?? $entry['documentId'] ?? $entry['id'] ?? '');
+
         return [
             'slug' => (string) $attrs['slug'],
+            'documentId' => $documentId,
             'name' => (string) $attrs['name'],
             'manufacturer' => (string) ($attrs['manufacturer'] ?? ''),
             'algorithm' => (string) ($attrs['algorithm'] ?? 'SHA-256'),
