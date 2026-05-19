@@ -436,6 +436,25 @@ function windowResize() {
 }
 
 function windowWheelOrTouch(e) {
+    // If the wheel/touch happens inside a paged section that still has inner
+    // overflow to consume in the wheel direction, let the browser scroll the
+    // section natively and skip the page-level nav. Only fall through to page
+    // change once the inner content is exhausted at the top or bottom edge.
+    const insideScrollable = e.target && typeof e.target.closest === 'function'
+        ? e.target.closest('.content-section--scrollable')
+        : null
+    if (insideScrollable) {
+        const goingDown = e.touches && e.touches[0]
+            ? e.touches[0].pageY < touchStartPosition
+            : e.deltaY > 0
+        const atTop = insideScrollable.scrollTop <= 0
+        const atBottom = insideScrollable.scrollTop + insideScrollable.clientHeight
+            >= insideScrollable.scrollHeight - 1
+        if ((goingDown && !atBottom) || (!goingDown && !atTop)) {
+            return
+        }
+    }
+
     // Limit scrolling to scroll only once in N milliseconds.
     if (timeoutActive) return
     timeoutActive = true

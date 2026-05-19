@@ -866,10 +866,11 @@ a:hover { color: var(--color-accent-hover); }
     font-size: 1rem;
     transition: border-color .15s ease, background .15s ease;
 }
-.nf-contact__form input:focus,
-.nf-contact__form textarea:focus,
-.nf-contact__form select:focus {
-    outline: none;
+.nf-contact__form input:focus-visible,
+.nf-contact__form textarea:focus-visible,
+.nf-contact__form select:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
     border-color: var(--color-accent);
     background: var(--color-bg);
 }
@@ -904,7 +905,14 @@ a:hover { color: var(--color-accent-hover); }
 /* v0.4.3 Section 1 UX fix — Direction A: 3-column at-a-glance triptych.
    Visitor lands on Section 1 and sees all 3 ASICs side-by-side, no scroll
    needed. Full breakdown/services list deferred to /produkty/{slug}. */
-.content-section--scrollable { overflow-y: auto; max-height: 90vh; padding: 2rem; }
+/* Reserve top padding to clear the fixed-content-header (~5% top + 35px logo on
+   desktop, smaller on mobile) so the section title doesn't slide under the
+   logo/KONTAKT bar when the page is scrolled past the hero. */
+.content-section--scrollable {
+    overflow-y: auto;
+    max-height: 90vh;
+    padding: clamp(4.5rem, 12vh, 6.5rem) 2rem 2rem;
+}
 
 /* v0.4.5 Section 1 width fix — STROJE long-form editorial slabs need
    ~1200px to render the rail + heading + price-sidebar grid properly
@@ -927,7 +935,9 @@ a:hover { color: var(--color-accent-hover); }
     left: 50%;
     transform: translateX(-50%);
     text-align: left;
-    padding: 1.5rem clamp(1rem, 3vw, 2.5rem);
+    /* Same top clearance as the base .content-section--scrollable rule so the
+       title stays clear of the fixed-content-header on first scroll-in. */
+    padding: clamp(4.5rem, 12vh, 6.5rem) clamp(1rem, 3vw, 2.5rem) 1.5rem;
     align-items: stretch;
     justify-content: flex-start;
 }
@@ -1468,3 +1478,86 @@ body.cms-edit-active .cms-edit-field--editing { outline: 2px solid var(--color-a
 body.cms-edit-active .cms-edit-field--saving { outline-color: var(--color-warn); background-color: rgba(250, 204, 21, 0.12); }
 body.cms-edit-active .cms-edit-field--ok { outline-color: var(--color-success); background-color: rgba(74, 222, 128, 0.12); }
 body.cms-edit-active .cms-edit-field--err { outline-color: var(--color-error); background-color: rgba(248, 113, 113, 0.12); }
+
+/* ====== ACCESSIBILITY ====== */
+
+/* Skip-to-content link — invisible until keyboard-focused, then jumps over nav. */
+.nf-skip-link {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    padding: 0.75rem 1.25rem;
+    background: var(--color-accent);
+    color: #000;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transform: translateY(-110%);
+    transition: transform 0.15s ease;
+}
+.nf-skip-link:focus,
+.nf-skip-link:focus-visible {
+    transform: translateY(0);
+    outline: 2px solid #000;
+    outline-offset: -4px;
+    color: #000;
+}
+
+/* Visible focus outline for any interactive element that doesn't define its own. */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+summary:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+}
+
+/* Compact the fixed-content-header once the visitor scrolls off the hero.
+   On data-page=0 the Victor template gives it `padding: 5% 5% 0` which feels
+   right for the empty intro screen — but once any inner section is active,
+   that 5 % top eats into the editorial content, so we collapse it to ~10 px
+   and let the title sit close to the viewport edge. :has() is universally
+   supported in modern browsers; legacy fallback (no :has()) keeps the
+   compact padding which is still readable. Subpages use .nf-header (not
+   .fixed-content-header) so they are unaffected. */
+.fixed-content-header {
+    padding-top: 10px;
+    transition: padding-top 0.4s ease;
+}
+.ui-wrapper:has(.content-section[data-page="0"]:not(.section--hidden)) .fixed-content-header {
+    padding-top: 5%;
+}
+
+/* Mobile tap targets — Victor base ships 35x13 px burger and a 41 px tall
+   KONTAKT button in the fixed header, both under the WCAG/Apple 44x44 min.
+   Expand burger hit area via a pseudo-element (visual stays 35x13) and force
+   the contact CTA to min-height 44 px so it crosses the threshold on touch. */
+.burger {
+    position: relative;
+}
+.burger::before {
+    content: "";
+    position: absolute;
+    inset: -16px -12px;
+}
+.fixed-content-header__contact {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Respect user's motion preference — kill all transitions/animations.
+   Site has a 3 s loader, scroll-letter cascade, and content-section transitions
+   that would otherwise trigger vestibular symptoms. */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+}
