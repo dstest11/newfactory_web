@@ -3,14 +3,28 @@
 <head>
     <title>{% block title %}New Factory — Bitcoin mining hardware{% endblock %}</title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=5.0" />
-    <meta name="description" content="New Factory — prodej a provoz mining strojů pro Bitcoin. Pravé Bitmain a MicroBT ASIC mineři s instalací, servisem a transparentní cenovou kalkulací (stroj + příslušenství + doprava + elektřina). Žádné skryté poplatky." />
-    <meta name="theme-color" content="#141414" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="{% block description %}New Factory — prodej a provoz mining strojů pro Bitcoin. Pravé Bitmain a MicroBT ASIC mineři s instalací, servisem a transparentní cenovou kalkulací (stroj + příslušenství + doprava + elektřina). Žádné skryté poplatky.{% endblock %}" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="canonical" href="{{ app.request.schemeAndHttpHost ~ app.request.pathInfo }}" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="cs_CZ" />
+    <meta property="og:site_name" content="New Factory" />
+    <meta property="og:title" content="{{ block('title') }}" />
+    <meta property="og:description" content="{{ block('description') }}" />
+    <meta property="og:url" content="{{ app.request.schemeAndHttpHost ~ app.request.pathInfo }}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{{ block('title') }}" />
+    <meta name="twitter:description" content="{{ block('description') }}" />
+
     <link type="text/css" rel="stylesheet" href="/victor/styles/main.css" />
     <link type="text/css" rel="stylesheet" href="/victor/styles/slider.css" />
     <link type="text/css" rel="stylesheet" href="/victor/styles/components.css" />
     <link type="text/css" rel="stylesheet" href="{{ asset('styles/app.css') }}" />
-    <link rel="icon" type="image/png" href="/victor/resources/images/favicon.ico" />
+    {# SVG primary (modern browsers render at any resolution); ICO fallback for legacy. #}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/victor/resources/images/favicon.ico" sizes="any" />
     {# CSRF token for inline-edit writes — only emitted for authenticated editors. #}
     {% if is_granted('ROLE_EDITOR') %}
         <meta name="cms-csrf-token" content="{{ csrf_token('cms_edit') }}">
@@ -31,6 +45,7 @@
     data-inline-edit-active-class="cms-edit-active"
     {% endif %}
 >
+<a href="#main" class="nf-skip-link">Přeskočit na hlavní obsah</a>
 {% if is_granted('ROLE_EDITOR') %}
     <aside class="cms-edit-bar" data-inline-edit-target="bar" role="status" aria-live="polite">
         <span class="cms-edit-bar__pill cms-edit-bar__pill--idle">EDITOR · {{ app.user.userIdentifier }}</span>
@@ -42,7 +57,10 @@
     </aside>
 {% endif %}
     {% block body %}{% endblock %}
-    <script type="module" src="/victor/main.js"></script>
+    {# nginx ships /victor/* with Cache-Control: max-age=432000 (5 days). Bump
+       ?v=… whenever main.js / ui.js / slider.js are edited so returning visitors
+       fetch the new file instead of using the cached one. #}
+    <script type="module" src="/victor/main.js?v=20260519"></script>
     {% block javascripts %}{% endblock %}
 </body>
 </html>

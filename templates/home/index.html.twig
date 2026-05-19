@@ -6,22 +6,22 @@
 
 {% block body %}
 <!-- MAIN UI ELEMENTS -->
-<main class="ui-wrapper page-not-loaded">
+<main id="main" class="ui-wrapper page-not-loaded">
     <!-- LOADER -->
     <div class="loader flex flex--center">
         <span class="loader__text">NEW FACTORY</span>
     </div>
 
     <!-- MAIN MENU -->
-    <div class="menu">
+    <nav class="menu" aria-label="Hlavní navigace">
         <ul class="menu-list">
-            <li class="menu-list__item" data-page="1">STROJE</li>
-            <li class="menu-list__item" data-page="2">SLUŽBY</li>
-            <li class="menu-list__item" data-page="3">PROČ NÁS</li>
-            <li class="menu-list__item" data-page="4">TÝM</li>
-            <li class="menu-list__item" data-page="5">KONTAKT</li>
+            <li class="menu-list__item" data-page="1" role="button" tabindex="0">STROJE</li>
+            <li class="menu-list__item" data-page="2" role="button" tabindex="0">SLUŽBY</li>
+            <li class="menu-list__item" data-page="3" role="button" tabindex="0">PROČ NÁS</li>
+            <li class="menu-list__item" data-page="4" role="button" tabindex="0">TÝM</li>
+            <li class="menu-list__item" data-page="5" role="button" tabindex="0">KONTAKT</li>
         </ul>
-    </div>
+    </nav>
 
     <!-- OFFERS POPUP (full service list) -->
     <div class="popup" data-popup="offers">
@@ -93,38 +93,38 @@
             <h3 class="popup__subtitle">Bez dobrých lidí dobrá firma neexistuje</h3>
             <div class="slider">
                 <div class="slider__arrow slider__arrow-left slider__arrow--disabled" data-follow="centered_y">
-                    <img class="slider__arrow-icon" src="/victor/resources/images/icons/arrow.svg" alt="Arrow icon" />
+                    <img class="slider__arrow-icon" src="/victor/resources/images/icons/arrow.svg" alt="" aria-hidden="true" />
                 </div>
                 <div class="slider__arrow slider__arrow-right" data-follow="centered_y">
-                    <img class="slider__arrow-icon" src="/victor/resources/images/icons/arrow.svg" alt="Arrow icon" />
+                    <img class="slider__arrow-icon" src="/victor/resources/images/icons/arrow.svg" alt="" aria-hidden="true" />
                 </div>
                 <div class="slider__inner" id="slider">
                     <div class="slider__item">
-                        <img class="slider__item-image" src="/victor/resources/images/persons/person1.jpg" alt="Team photo" />
+                        <img class="slider__item-image" src="/victor/resources/images/persons/person1.jpg" alt="Jan Novák — Founder & CEO" />
                         <div class="slider__item-content">
-                            <h2 class="slider__item-name">Jan Novák</h2>
-                            <h2 class="slider__item-position">FOUNDER & CEO</h2>
+                            <h3 class="slider__item-name">Jan Novák</h3>
+                            <p class="slider__item-position">FOUNDER & CEO</p>
                         </div>
                     </div>
                     <div class="slider__item">
-                        <img class="slider__item-image" src="/victor/resources/images/persons/person2.jpg" alt="Team photo" />
+                        <img class="slider__item-image" src="/victor/resources/images/persons/person2.jpg" alt="Anna Svobodová — CTO / Mining Ops" />
                         <div class="slider__item-content">
-                            <h2 class="slider__item-name">Anna Svobodová</h2>
-                            <h2 class="slider__item-position">CTO / MINING OPS</h2>
+                            <h3 class="slider__item-name">Anna Svobodová</h3>
+                            <p class="slider__item-position">CTO / MINING OPS</p>
                         </div>
                     </div>
                     <div class="slider__item">
-                        <img class="slider__item-image" src="/victor/resources/images/persons/person3.jpg" alt="Team photo" />
+                        <img class="slider__item-image" src="/victor/resources/images/persons/person3.jpg" alt="Petr Dvořák — Support & Servis" />
                         <div class="slider__item-content">
-                            <h2 class="slider__item-name">Petr Dvořák</h2>
-                            <h2 class="slider__item-position">SUPPORT & SERVIS</h2>
+                            <h3 class="slider__item-name">Petr Dvořák</h3>
+                            <p class="slider__item-position">SUPPORT & SERVIS</p>
                         </div>
                     </div>
                     <div class="slider__item">
-                        <img class="slider__item-image" src="/victor/resources/images/persons/person4.jpg" alt="Team photo" />
+                        <img class="slider__item-image" src="/victor/resources/images/persons/person4.jpg" alt="Markéta Horáková — Business Development" />
                         <div class="slider__item-content">
-                            <h2 class="slider__item-name">Markéta Horáková</h2>
-                            <h2 class="slider__item-position">BUSINESS DEV</h2>
+                            <h3 class="slider__item-name">Markéta Horáková</h3>
+                            <p class="slider__item-position">BUSINESS DEV</p>
                         </div>
                     </div>
                 </div>
@@ -135,14 +135,14 @@
     <!-- HEADER -->
     <header class="fixed-content-header">
         <div class="flex flex--center">
-            <div class="burger" data-follow>
+            <div class="burger" data-follow role="button" tabindex="0" aria-label="Otevřít menu" aria-expanded="false" aria-controls="main-menu">
                 <div class="burger__line"></div>
                 <div class="burger__line"></div>
                 <div class="burger__line"></div>
             </div>
             <div class="fixed-content-header__logo">NEW FACTORY</div>
         </div>
-        <button class="fixed-content-header__contact button button--primary" data-follow data-page="5">KONTAKT</button>
+        <a class="fixed-content-header__contact button button--primary" href="{{ path('contact') }}" data-follow data-page="5">KONTAKT</a>
     </header>
 
     <!-- PAGING -->
@@ -157,20 +157,24 @@
 
     <!-- FOOTER -->
     <div class="fixed-content-footer">
-        <div class="social-links">
-            <a class="social-links__anchor" href="#">
-                <img class="social-links__image" src="/victor/resources/images/socials/facebook.svg" alt="Facebook logo" width="20" height="20">
-            </a>
-            <a class="social-links__anchor" href="#">
-                <img class="social-links__image" src="/victor/resources/images/socials/twitter.svg" alt="X / Twitter logo" width="20" height="20">
-            </a>
-            <a class="social-links__anchor" href="#">
-                <img class="social-links__image" src="/victor/resources/images/socials/instagram.svg" alt="Instagram logo" width="20" height="20">
-            </a>
-        </div>
+        {# Social links intentionally disabled until real channels exist — placeholder href="#" hurt SEO and UX.
+           Re-enable by replacing href="#" with real URLs and removing the {% if false %} guard. #}
+        {% if false %}
+            <div class="social-links">
+                <a class="social-links__anchor" href="#" rel="noopener">
+                    <img class="social-links__image" src="/victor/resources/images/socials/facebook.svg" alt="Facebook" width="20" height="20">
+                </a>
+                <a class="social-links__anchor" href="#" rel="noopener">
+                    <img class="social-links__image" src="/victor/resources/images/socials/twitter.svg" alt="X / Twitter" width="20" height="20">
+                </a>
+                <a class="social-links__anchor" href="#" rel="noopener">
+                    <img class="social-links__image" src="/victor/resources/images/socials/instagram.svg" alt="Instagram" width="20" height="20">
+                </a>
+            </div>
+        {% endif %}
         <div class="fixed-content-footer__copy">
-            <span class="footer-copy__date"></span>
-            <span class="footer-copy__name">New Factory · mining@new-factory.cz</span>
+            <span class="footer-copy__date">© {{ "now"|date("Y") }}</span>
+            <span class="footer-copy__name">New Factory · <a href="mailto:mining@new-factory.cz">mining@new-factory.cz</a></span>
         </div>
     </div>
 
@@ -182,13 +186,15 @@
             <div class="configuration__letters configuration__letters--hidden">
                 <span class="configuration__letters-text">NEW FACTORY</span>
             </div>
-            <div class="scroll-letters">
-                <span class="scroll-letters__letter" title="S">S</span>
-                <span class="scroll-letters__letter" title="C">C</span>
-                <span class="scroll-letters__letter" title="R">R</span>
-                <span class="scroll-letters__letter" title="O">O</span>
-                <span class="scroll-letters__letter" title="L">L</span>
-                <span class="scroll-letters__letter" title="L">L</span>
+            {# The scroll prompt is a visual flourish — hide letter-by-letter from screen readers
+               and expose a single semantic hint via aria-label. #}
+            <div class="scroll-letters" aria-label="Scrollujte" role="presentation">
+                <span class="scroll-letters__letter" aria-hidden="true">S</span>
+                <span class="scroll-letters__letter" aria-hidden="true">C</span>
+                <span class="scroll-letters__letter" aria-hidden="true">R</span>
+                <span class="scroll-letters__letter" aria-hidden="true">O</span>
+                <span class="scroll-letters__letter" aria-hidden="true">L</span>
+                <span class="scroll-letters__letter" aria-hidden="true">L</span>
             </div>
         </div>
 
@@ -360,16 +366,16 @@
             </div>
             <div class="content-section__images">
                 <div class="content-section__image-holder">
-                    <img class="content-section__image" src="/victor/resources/images/persons/person1.jpg" alt="Team photo" />
+                    <img class="content-section__image" src="/victor/resources/images/persons/person1.jpg" alt="Jan Novák — Founder & CEO" />
                 </div>
                 <div class="content-section__image-holder">
-                    <img class="content-section__image" src="/victor/resources/images/persons/person2.jpg" alt="Team photo" />
+                    <img class="content-section__image" src="/victor/resources/images/persons/person2.jpg" alt="Anna Svobodová — CTO / Mining Ops" />
                 </div>
                 <div class="content-section__image-holder">
-                    <img class="content-section__image" src="/victor/resources/images/persons/person3.jpg" alt="Team photo" />
+                    <img class="content-section__image" src="/victor/resources/images/persons/person3.jpg" alt="Petr Dvořák — Support & Servis" />
                 </div>
                 <div class="content-section__image-holder">
-                    <img class="content-section__image" src="/victor/resources/images/persons/person4.jpg" alt="Team photo" />
+                    <img class="content-section__image" src="/victor/resources/images/persons/person4.jpg" alt="Markéta Horáková — Business Development" />
                 </div>
             </div>
         </div>
@@ -380,12 +386,12 @@
             <p class="content-section__text" data-cms-field="newfactory-homepage:single:contact_lead">{{ homepage.contact_lead|default('Máme rádi vaše otázky — ozveme se do 24 hodin. Konzultace zdarma.') }}</p>
             <div class="content-section__buttons-holder">
                 <a class="content-section__button button button--icon" href="mailto:mining@new-factory.cz">
-                    <img class="button__image" src="/victor/resources/images/icons/email.svg" alt="Email icon" />
+                    <img class="button__image" src="/victor/resources/images/icons/email.svg" alt="" aria-hidden="true" />
                     <span class="button__text">EMAIL</span>
                     <span class="button__invisible-email">mining@new-factory.cz</span>
                 </a>
                 <a class="content-section__button button button--icon" href="{{ path('contact') }}">
-                    <img class="button__image" src="/victor/resources/images/icons/phone.svg" alt="Form icon" />
+                    <img class="button__image" src="/victor/resources/images/icons/external.svg" alt="" aria-hidden="true" />
                     <span class="button__text">FORMULÁŘ POPTÁVKY</span>
                 </a>
             </div>

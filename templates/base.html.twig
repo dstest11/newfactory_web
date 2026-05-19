@@ -4,6 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}New Factory — těžební zařízení{% endblock %}</title>
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="description" content="{% block description %}New Factory — prodej a provoz mining strojů pro Bitcoin. ASIC mineři s instalací, servisem a transparentní all-in cenou.{% endblock %}">
+    <link rel="canonical" href="{{ app.request.schemeAndHttpHost ~ app.request.pathInfo }}">
+    {# SVG primary (modern browsers render at any resolution); ICO fallback for legacy. #}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/victor/resources/images/favicon.ico" sizes="any">
+
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="cs_CZ">
+    <meta property="og:site_name" content="New Factory">
+    <meta property="og:title" content="{{ block('title') }}">
+    <meta property="og:description" content="{{ block('description') }}">
+    <meta property="og:url" content="{{ app.request.schemeAndHttpHost ~ app.request.pathInfo }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ block('title') }}">
+    <meta name="twitter:description" content="{{ block('description') }}">
+
     {% block meta %}{% endblock %}
     {# CSRF token for inline-edit writes (consumed by inline_edit_controller.js).
        Empty for anonymous viewers — by then the controller no-ops anyway. #}
@@ -29,6 +46,7 @@
     data-inline-edit-active-class="cms-edit-active"
     {% endif %}
 >
+<a href="#main" class="nf-skip-link">Přeskočit na hlavní obsah</a>
 {% if is_granted('ROLE_EDITOR') %}
     <aside class="cms-edit-bar" data-inline-edit-target="bar" role="status" aria-live="polite">
         <span class="cms-edit-bar__pill cms-edit-bar__pill--idle">EDITOR · {{ app.user.userIdentifier }}</span>
