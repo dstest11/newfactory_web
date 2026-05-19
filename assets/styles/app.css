@@ -1519,15 +1519,24 @@ summary:focus-visible {
    On data-page=0 the Victor template gives it `padding: 5% 5% 0` which feels
    right for the empty intro screen — but once any inner section is active,
    that 5 % top eats into the editorial content, so we collapse it to ~10 px
-   and let the title sit close to the viewport edge. :has() is universally
-   supported in modern browsers; legacy fallback (no :has()) keeps the
-   compact padding which is still readable. Subpages use .nf-header (not
-   .fixed-content-header) so they are unaffected. */
+   and let the title sit close to the viewport edge.
+
+   Victor uses TWO hidden classes: `section--hidden` is applied when the user
+   scrolls DOWN past a section, `section--hidden-reverse` when scrolling UP
+   past it (see public/victor/ui.js::checkContentVisibility). Both translate
+   to `display: none`. The :has() selector must exclude BOTH or the header
+   transiently snaps back to the 5 % padding when navigating UP past
+   data-page=0 (section 0 gains -reverse and loses --hidden, so a naive
+   :not(.section--hidden) would still match).
+
+   :has() is universal in Chrome 105+ / Safari 15.4+ / FF 121+; legacy
+   browsers fall back to the compact padding everywhere. Subpages use
+   .nf-header (not .fixed-content-header) so they are unaffected. */
 .fixed-content-header {
     padding-top: 10px;
     transition: padding-top 0.4s ease;
 }
-.ui-wrapper:has(.content-section[data-page="0"]:not(.section--hidden)) .fixed-content-header {
+.ui-wrapper:has(.content-section[data-page="0"]:not(.section--hidden):not(.section--hidden-reverse)) .fixed-content-header {
     padding-top: 5%;
 }
 
