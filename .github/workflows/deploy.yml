@@ -14,16 +14,21 @@
 name: Deploy newfactory_web to DigitalOcean
 
 on:
-  push:
-    branches: [main, master]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'LICENSE'
-      - '.editorconfig'
-      - '.gitignore'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/pull_request_template.md'
+  # Push -> staging auto-deploy DISABLED (2026-06-11, on request -- saves GH
+  # Actions minutes; pushes are frequent and staging isn't needed right now).
+  # Deploys are manual only: `workflow_dispatch` (staging|production) or a
+  # published GitHub Release (production). To re-enable auto-staging-on-push,
+  # uncomment the block below.
+  # push:
+  #   branches: [main, master]
+  #   paths-ignore:
+  #     - '**.md'
+  #     - 'docs/**'
+  #     - 'LICENSE'
+  #     - '.editorconfig'
+  #     - '.gitignore'
+  #     - '.github/ISSUE_TEMPLATE/**'
+  #     - '.github/pull_request_template.md'
   release:
     types: [published]
   workflow_dispatch:
