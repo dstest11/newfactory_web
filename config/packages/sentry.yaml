@@ -11,6 +11,20 @@ when@prod:
             release: '%env(default::APP_RELEASE)%'
             traces_sample_rate: 0.0
             send_default_pii: false
+            # Mirror monolog's `excluded_http_codes: [404, 405]` for the Bugsink path.
+            # The sentry-symfony bundle's error listener (register_error_listener, ON
+            # by default) reports kernel exceptions DIRECTLY — it does NOT go through
+            # monolog, so monolog's excluded_http_codes doesn't cover it (and Symfony
+            # logs 404s at WARNING, below the monolog `sentry` handler's `error` level
+            # anyway). 404/405 are noise here: bots, stale links, and — the trigger for
+            # this — AssetMapper content-hash 404s from a browser holding an OLD page
+            # after a deploy changed an asset's hash. The atomic vendor swap replaces
+            # public/assets/ wholesale, so the stale page's lazy `import` of the old
+            # `*-<oldhash>.js` 404s until the user reloads (self-heals; not a real bug).
+            # `ignore_exceptions` does an is_a check (covers subclasses).
+            ignore_exceptions:
+                - Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+                - Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException
 
 when@staging:
     sentry:
@@ -22,3 +36,17 @@ when@staging:
             release: '%env(default::APP_RELEASE)%'
             traces_sample_rate: 0.0
             send_default_pii: false
+            # Mirror monolog's `excluded_http_codes: [404, 405]` for the Bugsink path.
+            # The sentry-symfony bundle's error listener (register_error_listener, ON
+            # by default) reports kernel exceptions DIRECTLY — it does NOT go through
+            # monolog, so monolog's excluded_http_codes doesn't cover it (and Symfony
+            # logs 404s at WARNING, below the monolog `sentry` handler's `error` level
+            # anyway). 404/405 are noise here: bots, stale links, and — the trigger for
+            # this — AssetMapper content-hash 404s from a browser holding an OLD page
+            # after a deploy changed an asset's hash. The atomic vendor swap replaces
+            # public/assets/ wholesale, so the stale page's lazy `import` of the old
+            # `*-<oldhash>.js` 404s until the user reloads (self-heals; not a real bug).
+            # `ignore_exceptions` does an is_a check (covers subclasses).
+            ignore_exceptions:
+                - Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+                - Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException
