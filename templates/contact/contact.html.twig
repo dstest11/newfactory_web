@@ -29,26 +29,38 @@
         </ul>
     </section>
 
-    {% for label, messages in app.flashes(['success', 'error']) %}
-        {% for message in messages %}
-            <div class="nf-flash nf-flash--{{ label }}">{{ message }}</div>
-        {% endfor %}
-    {% endfor %}
-
     <section class="nf-contact__form-wrap">
-        {{ form_start(form, { attr: { class: 'nf-contact__form', novalidate: 'novalidate' } }) }}
+        {# Same approach as dosmart_web/mikamiho_web: plain form → fetch() POST to
+           the JSON endpoint → inline success/error (no full-page reload). #}
+        <form id="contactForm" class="nf-contact__form" method="post" action="{{ path('contact_submit') }}" novalidate>
             <p class="nf-eyebrow nf-contact__form-eyebrow">[FORMULÁŘ]</p>
-            {{ form_row(form.name) }}
-            {{ form_row(form.email) }}
-            {{ form_row(form.phone) }}
-            {{ form_row(form.product) }}
-            {{ form_row(form.message) }}
             {# Honeypot — visually hidden but present in DOM. Bots fill all fields. #}
             <div style="position: absolute; left: -9999px;" aria-hidden="true">
-                {{ form_row(form.website, { label: 'Leave this blank' }) }}
+                <label>Leave this blank<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+            </div>
+            <div>
+                <label for="cf-name">Jméno</label>
+                <input type="text" id="cf-name" name="name" required>
+            </div>
+            <div>
+                <label for="cf-email">E-mail</label>
+                <input type="email" id="cf-email" name="email" required>
+            </div>
+            <div>
+                <label for="cf-phone">Telefon</label>
+                <input type="tel" id="cf-phone" name="phone">
+            </div>
+            <div>
+                <label for="cf-product">Zájem o produkt</label>
+                <input type="text" id="cf-product" name="product" value="{{ product }}">
+            </div>
+            <div>
+                <label for="cf-message">Zpráva</label>
+                <textarea id="cf-message" name="message" rows="5"></textarea>
             </div>
             <button type="submit" class="nf-btn nf-btn--primary nf-btn--xl">Odeslat poptávku →</button>
-        {{ form_end(form) }}
+            <p id="contact-form-status" role="status" aria-live="polite" style="display:none;"></p>
+        </form>
     </section>
 </main>
 
@@ -57,4 +69,58 @@
     <p class="nf-footer__meta nf-mono">[BTC&nbsp;ASIC&nbsp;DISTRIBUTOR&nbsp;·&nbsp;CZ]</p>
 </footer>
 </div>
+
+<script>
+    // Contact form — client validation + server submit via fetch with an inline
+    // success/error message (no page reload). Same approach as dosmart_web.
+    (function () {
+        var form = document.getElementById('contactForm');
+        if (!form) return;
+        var statusEl = document.getElementById('contact-form-status');
+        var btn = form.querySelector('button[type="submit"]');
+
+        function setStatus(msg, ok) {
+            statusEl.textContent = msg;
+            statusEl.style.display = 'block';
+            statusEl.style.color = ok ? '#3ad07a' : '#ff6b6b';
+        }
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var name = document.getElementById('cf-name');
+            var email = document.getElementById('cf-email');
+            [name, email].forEach(function (i) { i.style.borderColor = ''; });
+
+            var bad = false;
+            if (!name.value.trim()) { name.style.borderColor = '#ff6b6b'; bad = true; }
+            if (!email.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) { email.style.borderColor = '#ff6b6b'; bad = true; }
+            if (bad) {
+                setStatus('Vyplňte prosím jméno a platný e-mail.', false);
+                var firstBad = form.querySelector('[style*="border-color"]');
+                if (firstBad) firstBad.focus();
+                return;
+            }
+
+            btn.disabled = true;
+            var label = btn.textContent;
+            btn.textContent = 'Odesílám…';
+            statusEl.style.display = 'none';
+
+            fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'fetch' } })
+                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+                .then(function (res) {
+                    if (res.ok && res.data && res.data.ok) {
+                        form.reset();
+                        setStatus(res.data.message || 'Děkujeme! Ozveme se vám do 24 hodin.', true);
+                    } else {
+                        setStatus((res.data && res.data.message) || 'Odeslání se nezdařilo. Napište nám na mining@new-factory.cz.', false);
+                    }
+                })
+                .catch(function () {
+                    setStatus('Spojení selhalo. Napište nám prosím na mining@new-factory.cz.', false);
+                })
+                .finally(function () { btn.disabled = false; btn.textContent = label; });
+        });
+    })();
+</script>
 {% endblock %}
