@@ -4,13 +4,19 @@ Symfony 7.4 inline-editable marketing site for new-factory.cz — Czech crypto-m
 
 ## Tech stack
 
-- Symfony 7.4 + PHP `^8.3` (platform pin `8.3.30` until shared container bumps)
+- Symfony 7.4 + PHP 8.4 (shared `nginx_fpm_shared` container, since 2026-05-15 cutover; image sha-4b6e368f). composer.json may still have `platform.php` pin from earlier work — keep it at 8.3.99 only if Symfony 7.x compatibility requires.
 - Strapi v5 (shared instance at `strapi.dosmart.world`) for content + auth — **no local DB**
 - `dosmart/cms-core-bundle` Plan 03 inline-edit overlay
 - `dstest11/mail-http-sdk` (HTTPS → ell06 mail-http-api — DO blocks SMTP egress)
 - Asset Mapper + Stimulus (no webpack)
 - Twig + Twig UX Components (PricingCard)
 - sentry/sentry-symfony → bugsink.dosmart.world
+
+## Dev workflow (mandatory)
+
+**Vývoj zásadně na locale.** All inline-edit, content-pipeline, and UI changes get iterated against `http://newfactory.localhost` first; production only receives code through the standard deploy pipeline (feature branch → PR → merge → `gh release create` → CI build-vendor → webhook). E2E full cycles (Strapi PATCH + restore, contentEditable flows) belong on localhost. Smoke checks on prod after deploy are fine.
+
+To bootstrap locally: infra `.env.local` (gitignored — auto-loaded by `docker-compose.override.yml` as second env_file on `nginx_fpm_shared`) holds the real `NEWFACTORY_EDITOR_EMAILS` / `NEWFACTORY_EDITOR_PASSWORD_HASH` / `NEWFACTORY_APP_SECRET` / `NEWFACTORY_STRAPI_API_TOKEN` (see `!!!_credentials.md`). Without those, login is dead and products fall back to the hardcoded `ProductCatalog` (no `documentId` → no inline edit at all).
 
 ## Infrastructure
 
