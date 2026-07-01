@@ -214,20 +214,29 @@ jobs:
       # loads config/packages/sentry.yaml referencing %env(NEWFACTORY_SENTRY_DSN)%
       # — empty string makes the SDK a no-op during CI build (real DSN
       # comes from GH Secrets at deploy time via /srv/www/.env override).
-      - name: Symfony asset:install + asset-map:compile (if applicable)
+      - name: Symfony asset:install + asset-map:compile (offline)
         if: steps.cache_check.outputs.hit != 'true'
         env:
           APP_ENV: prod
           NEWFACTORY_SENTRY_DSN: ""
         run: |
+          set -euo pipefail
           if [[ -f bin/console ]]; then
-            php -d memory_limit=512M bin/console assets:install public --no-interaction || true
-            # importmap:install MUST run before asset-map:compile so
-            # downloaded vendor packages (e.g. @hotwired/stimulus) get
-            # included in the compiled importmap.json. Reversed order
-            # silently drops version-pinned entries from production.
-            php -d memory_limit=512M bin/console importmap:install --no-interaction || true
-            php -d memory_limit=512M bin/console asset-map:compile --no-interaction || true
+            # assets/vendor/ is COMMITTED (see .gitignore rationale), so CI does
+            # NOT run importmap:install — jsDelivr cannot reliably bundle some
+            # packages as ESM (persistent 500) and a failed download used to be
+            # masked by `|| true` → an incomplete asset bundle shipped (mikamiho.cz
+            # outage 2026-06-30). We compile from the committed vendor. Add/update a
+            # package LOCALLY via `bin/console importmap:require` + commit assets/vendor/.
+            php -d memory_limit=512M bin/console assets:install public --no-interaction
+            # NO `|| true`: a failed compile MUST fail the build, never ship a
+            # stale/incomplete public/assets. Fail loud instead.
+            php -d memory_limit=512M bin/console asset-map:compile --no-interaction
+            # Guard: the compiled import map must contain the vendor packages.
+            if ! grep -q 'hotwired' public/assets/importmap.json; then
+              echo "::error::public/assets/importmap.json is missing @hotwired/stimulus — assets/vendor/ is incomplete. Run 'bin/console importmap:install' locally and commit assets/vendor/."
+              exit 1
+            fi
           else
             echo "No bin/console — skipping Symfony asset compile"
           fi

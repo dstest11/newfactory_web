@@ -10,7 +10,11 @@
 
 ###> symfony/asset-mapper ###
 /public/assets/
-/assets/vendor/
+# assets/vendor/ is COMMITTED (not ignored) on purpose: a CI `importmap:install`
+# depends on jsDelivr, which cannot reliably bundle some packages as ESM (persistent
+# 500) → an incomplete asset bundle used to ship (mikamiho.cz outage 2026-06-30).
+# Vendoring makes the build offline + reproducible. Add/update a package LOCALLY
+# with `bin/console importmap:require <pkg>` then commit assets/vendor/.
 ###< symfony/asset-mapper ###
 
 ###> phpunit/phpunit ###
