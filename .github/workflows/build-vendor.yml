@@ -89,6 +89,10 @@ jobs:
           [[ -f importmap.php ]]      && FILES+=(importmap.php)
           [[ -f package-lock.json ]]  && FILES+=(package-lock.json)
           [[ -f package.json ]]       && FILES+=(package.json)
+          # Include the build recipe itself: a recipe-only change (e.g. a new
+          # asset guard) must invalidate the cache, else the next deploy reuses a
+          # tarball built by the OLD recipe and the change never takes effect.
+          [[ -f .github/workflows/build-vendor.yml ]] && FILES+=(.github/workflows/build-vendor.yml)
 
           ASSET_LIST=""
           for dir in assets resources; do
@@ -222,6 +226,16 @@ jobs:
         run: |
           set -euo pipefail
           if [[ -f bin/console ]]; then
+            # Sentinel: a committed vendor file must NEVER be a jsDelivr "Failed to
+            # bundle using Rollup" error stub (valid JS → compile + the hotwired
+            # check below both PASS, but the module throws at runtime — the
+            # @editorjs/editorjs case, 2026-06-30). Fail loud here. (newfactory
+            # doesn't currently vendor @editorjs, but this makes adding it safe.)
+            if grep -rlq 'Failed to bundle using Rollup' assets/vendor/ 2>/dev/null; then
+              echo "::error::A committed assets/vendor/ file is a jsDelivr error stub — re-vendor the real package dist (dist/*.mjs)."
+              grep -rl 'Failed to bundle using Rollup' assets/vendor/
+              exit 1
+            fi
             # assets/vendor/ is COMMITTED (see .gitignore rationale), so CI does
             # NOT run importmap:install — jsDelivr cannot reliably bundle some
             # packages as ESM (persistent 500) and a failed download used to be
