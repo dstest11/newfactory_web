@@ -1,7 +1,8 @@
 # =============================================================================
 # Deploy workflow — Phase C webhook trigger (matches dstest11/koupelnystefl_web,
 # stavsys, crmechoz et al.). The infra droplet runs `webhook` on
-# deploy.dosmart.world; this workflow signs a {app, sha, env} payload with
+# deploy.svc.dosmart.cz (moved from the now-undelegated deploy.dosmart.world);
+# this workflow signs a {app, sha, env} payload with
 # HMAC-SHA256 and POSTs it to /hooks/deploy-app. The webhook script on the
 # droplet (webhook/scripts/deploy-app.sh) handles the rest: vendor artifact
 # extract via the webhook_deploy container (which has aws-cli baked in),
@@ -74,6 +75,7 @@ jobs:
           APP: newfactory_web
           SHA: ${{ github.sha }}
           DEPLOY_ENV: ${{ steps.targets.outputs.env }}
+          DEPLOY_HOST: ${{ vars.DEPLOY_WEBHOOK_HOST || 'deploy.svc.dosmart.cz' }}
         run: |
           PAYLOAD=$(jq -nc \
               --arg app "$APP" \
@@ -86,7 +88,7 @@ jobs:
           # -k tolerates Let's Encrypt outage / self-signed fallback (HMAC still
           # authenticates the payload). Same pattern as live apps.
           curl -fsS -k --max-time 600 -X POST \
-              https://deploy.dosmart.world/hooks/deploy-app \
+              https://$DEPLOY_HOST/hooks/deploy-app \
               -H "Content-Type: application/json" \
               -H "X-Hub-Signature-256: $SIG" \
               -d "$PAYLOAD"
