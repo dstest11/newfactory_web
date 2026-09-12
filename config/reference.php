@@ -695,12 +695,26 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         base_url?: scalar|Param|null, // Strapi base URL, e.g. http://strapi.localhost or http://strapi:1337
  *         api_token?: scalar|Param|null, // Strapi API token (named "tenant:{slug}" for multi-tenant scoping)
  *         timeout?: int|Param, // HTTP timeout in seconds // Default: 5
+ *         media_internal_base_url?: scalar|Param|null, // Where the SERVER can reach uploaded files, if that differs from the URL Strapi gives the browser (local dev: http://minio:9000). Empty in production, where the CDN is reachable from the app host too. // Default: ""
  *     },
  *     cache?: array{
  *         ttl?: int|Param, // Cache TTL in seconds // Default: 3600
  *         pool?: scalar|Param|null, // Symfony cache pool service id // Default: "cache.app"
  *     },
  *     editable_fields?: array<string, list<scalar|Param|null>>,
+ *     dynamic_zone_fields?: array<string, array<string, array<string, list<scalar|Param|null>>>>,
+ *     local_login?: array{ // Local editor login modal (POST /cms-login) — password mode and/or Strapi-admin-credentials fallback
+ *         enabled?: bool|Param, // Default: false
+ *         jwt_secret?: scalar|Param|null, // EditLink HMAC secret — SAME value the EditLink handoff uses (<APP>_CMS_JWT_SECRET) // Default: null
+ *         issuer?: scalar|Param|null, // EditLink issuer string, e.g. "mikamiho" — must match the host authenticator's IssuedBy() // Default: null
+ *         tenant?: scalar|Param|null, // Strapi tenant slug — EditLink "tenant" claim + required Strapi admin role "tenant-<slug>" in fallback mode // Default: null
+ *         password_hash?: scalar|Param|null, // base64(bcrypt(password)). Set → password-only modal. Empty → strapi_admin_fallback (if enabled) // Default: null
+ *         strapi_admin_fallback?: bool|Param, // When password_hash is empty, authenticate e-mail+password against Strapi POST /admin/login // Default: true
+ *         strapi_admin_url?: scalar|Param|null, // Public Strapi admin base URL, e.g. https://strapi.svc.dosmart.cz/admin — powers the "Zapomenuté heslo?" link on /admin-login in strapi_admin_fallback mode, pointing to Strapi's own /admin/auth/forgot-password page (editors ARE real Strapi admin users; reset-password is handled entirely by Strapi's own admin frontend from there, this bundle never links to it directly). Null → link hidden. // Default: null
+ *         token_ttl?: int|Param, // Minted EditLink lifetime in seconds // Default: 3600
+ *         rate_limiter?: scalar|Param|null, // Rate limiter NAME (framework.rate_limiter.<name>) consumed per client IP — strongly recommended in prod (e.g. 5/min) // Default: null
+ *         change_password_rate_limiter?: scalar|Param|null, // Rate limiter NAME (framework.rate_limiter.<name>) for POST /cms-change-password, consumed per client IP — separate budget from rate_limiter (different endpoint/threat surface) // Default: null
+ *     },
  * }
  * @psalm-type MonologConfig = array{
  *     use_microseconds?: scalar|Param|null, // Default: true

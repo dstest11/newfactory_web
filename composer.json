@@ -11,7 +11,7 @@
         "php": "^8.3",
         "ext-ctype": "*",
         "ext-iconv": "*",
-        "dosmart/cms-core-bundle": "dev-master",
+        "dosmart/cms-core-bundle": "^1.1",
         "dstest11/mail-http-sdk": "^0.1",
         "sentry/sentry-symfony": "^5.0",
         "symfony/asset": "7.4.*",
