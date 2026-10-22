@@ -21,28 +21,38 @@ final class ContactControllerTest extends WebTestCase
         self::assertStringContainsString('poptávku', $body);
         self::assertStringContainsString('Odeslat poptávku', $body);
         self::assertStringContainsString('mining@new-factory.cz', $body);
-        // Honeypot field is present but visually hidden.
-        self::assertStringContainsString('contact[website]', $body);
+        // Honeypot field is present but visually hidden. The form is a plain
+        // HTML form posted via fetch() to /kontakt-odeslat (not a Symfony
+        // FormType since #23), so the field is `website`, not `contact[website]`.
+        self::assertStringContainsString('name="website"', $body);
     }
 
     public function testHoneypotBlocksSubmission(): void
     {
         $client = static::createClient();
-        $crawler = $client->request('GET', '/kontakt');
-        $form = $crawler->selectButton('Odeslat poptávku')->form();
-        $form['contact[name]'] = 'Spam Bot';
-        $form['contact[email]'] = 'bot@example.com';
-        $form['contact[message]'] = 'I am a bot filling every field';
-        $form['contact[website]'] = 'http://spam.example.com';  // bot trap
-        $client->submit($form);
+        $client->enableProfiler();
+        $client->request('POST', '/kontakt-odeslat', [
+            'name' => 'Spam Bot',
+            'email' => 'bot@example.com',
+            'message' => 'I am a bot filling every field',
+            'website' => 'http://spam.example.com', // bot trap
+        ]);
 
-        // Honeypot rejection paths: either form re-render (200, "Spam detected")
-        // OR rate-limiter (429, "Příliš mnoho pokusů") — both block spam,
-        // which is what matters. The thing that MUST NOT happen is a 302
-        // redirect to success state with "Děkujeme!" flash.
-        $status = $client->getResponse()->getStatusCode();
-        self::assertContains($status, [200, 429], "expected anti-spam status, got $status");
-        $body = (string) $client->getResponse()->getContent();
-        self::assertStringNotContainsString('Děkujeme!', $body, 'honeypot must not yield success flash');
+        // The honeypot answers with a fake success (so the bot learns nothing)
+        // but MUST NOT send a lead e-mail.
+        self::assertResponseIsSuccessful();
+        self::assertEmailCount(0);
+    }
+
+    public function testMissingNameAndEmailAreRejected(): void
+    {
+        $client = static::createClient();
+        $client->request('POST', '/kontakt-odeslat', ['name' => '', 'email' => 'not-an-email']);
+
+        self::assertResponseStatusCodeSame(422);
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertFalse($data['ok']);
+        self::assertArrayHasKey('name', $data['errors']);
+        self::assertArrayHasKey('email', $data['errors']);
     }
 }
