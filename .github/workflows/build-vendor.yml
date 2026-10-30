@@ -94,8 +94,14 @@ jobs:
           # tarball built by the OLD recipe and the change never takes effect.
           [[ -f .github/workflows/build-vendor.yml ]] && FILES+=(.github/workflows/build-vendor.yml)
 
+          # App PHP source is part of the key: composer bakes the app's class list
+          # into vendor/composer/autoload_classmap.php. Without it a release with
+          # new classes but an unchanged composer.lock got the PREVIOUS release's
+          # vendor from this cache (appcontrol release v2026.10.30 died on
+          # `Expected to find class ... but it was not found` and answered 500
+          # until rolled back). Same fix as stavsys #255 / appcontrol #26.
           ASSET_LIST=""
-          for dir in assets resources; do
+          for dir in assets resources src config; do
             if [[ -d "$dir" ]]; then
               ASSET_LIST="${ASSET_LIST}$(find "$dir" -type f -print0 | sort -z | xargs -0 sha256sum)"$'\n'
             fi
@@ -203,11 +209,14 @@ jobs:
           APP_ENV: prod
           COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
         run: |
+          # No authoritative classmap flag: it forbids the PSR-4 fallback, so ANY
+          # stale classmap (see the cache key above) becomes a boot failure.
+          # `--optimize-autoloader` keeps the vendor classmap; app classes the
+          # map does not know still load via PSR-4.
           composer install \
             --no-dev \
             --no-scripts \
             --optimize-autoloader \
-            --classmap-authoritative \
             --no-interaction \
             --prefer-dist \
             --no-progress
